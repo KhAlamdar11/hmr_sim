@@ -25,9 +25,9 @@ def run(args):
     t = 0
 
     while not done:
-        action = env.unwrapped.get_dummy_action() #+ [0.1, 0.0]
-        obs, reward, terminated, truncated, info = env.step(action)
-        done = terminated or truncated
+        # action = env.unwrapped.get_dummy_action() #+ [0.1, 0.0]
+        # obs, reward, terminated, truncated, info = env.step(action)
+        # done = terminated or truncated
 
         # Render the environment
         env.render()

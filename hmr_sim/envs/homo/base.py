@@ -1,38 +1,20 @@
 import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-import json
 from pathlib import Path
 
 import cv2
 import yaml
 
-from hmr_sim.utils.swarm import Swarm
 
 class BaseEnv(gym.Env):
 
     def __init__(self, config):
         super().__init__()
+        
         self.dt = config.getfloat('dt', 0.1)  # Returns float
         self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
-        self.init_positions = np.array(json.loads(config.get('init_positions', '[]')))  # Converts to array
+        
         self.speed = config.getfloat('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
-
-        self.num_agents = self.init_positions.shape[0]
-
-        self.swarm = Swarm(
-            num_agents=self.num_agents,
-            init_positions=self.init_positions,
-            speed=self.speed,
-            dt=self.dt,
-            vis_radius=self.vis_radius,
-            is_line_of_sight_free_fn=self.is_line_of_sight_free  # Corrected parameter name
-        )
-
-        self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(self.num_agents, 4), dtype=np.float64)
-        self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(self.num_agents, 2), dtype=np.float32)
 
         self.occupancy_grid = None  # To be loaded via config
         self.origin = None
@@ -47,6 +29,7 @@ class BaseEnv(gym.Env):
         self.yaml_path = self.maps_folder / "data.yaml"
         self.occupancy_grid = self.load_occupancy_grid(str(self.image_path))
         self.origin, self.resolution = self.load_yaml_config(str(self.yaml_path))
+
 
     def load_yaml_config(self, yaml_path):
         with open(yaml_path, 'r') as file:

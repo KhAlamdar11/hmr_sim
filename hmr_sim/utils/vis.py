@@ -41,13 +41,22 @@ def render_homo(self,communication_radius=None):
 
         for agent in self.swarm.agents:
             # Plot agent marker
-            marker, = self.ax.plot(agent.state[0], agent.state[1], 'o', 
-                                    mfc='blue', mec='black', markersize=11, zorder=3)
+
+            if agent.type == 0:
+                marker, = self.ax.plot(agent.state[0], agent.state[1], 'o', 
+                                        mfc='blue', mec='black', markersize=11, zorder=3)
+            elif agent.type == 1:
+                marker, = self.ax.plot(agent.state[0], agent.state[1], '^', 
+                                        mfc='red', mec='black', markersize=11, zorder=3)
+            elif agent.type == 2:
+                marker, = self.ax.plot(agent.state[0], agent.state[1], 's', 
+                                        mfc='green', mec='black', markersize=11, zorder=3)
+        
             self.agent_markers.append(marker)
 
             # Add sensory radius circle
             sensor_circle = Circle((agent.state[0], agent.state[1]), agent.vis_radius, 
-                                    edgecolor='yellow', facecolor='yellow', linewidth=2.3, alpha=0.3, zorder=2)
+                                    edgecolor='yellow', facecolor='yellow', linewidth=2.3, alpha=0.05, zorder=3)
             self.ax.add_patch(sensor_circle)
             self.sensor_circles.append(sensor_circle)
 

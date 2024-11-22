@@ -24,7 +24,6 @@ class Swarm:
             agent.update_state(action, is_free_space_fn)
 
 
-
     def compute_adjacency_matrix(self, communication_radius):
         """
         Computes the adjacency matrix for the swarm based on communication radius
@@ -57,3 +56,26 @@ class Swarm:
         action_dim = 2  # Assuming a 2D action space
         return np.zeros((num_agents, action_dim), dtype=float)
 
+
+class HeterogeneousSwarm(Swarm):
+    """Manages a swarm of heterogeneous agents."""
+
+    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, is_line_of_sight_free_fn):
+        
+        self.num_agents = num_agents
+        self.total_agents = np.sum(self.num_agents)
+
+        self.types = np.repeat(np.arange(len(num_agents)),num_agents)
+
+        self.agents = [
+            Agent(agent_id=i, 
+                  init_pos=init_positions[i], 
+                  speed=speed, 
+                  dt=dt, 
+                  vis_radius=vis_radius,
+                  type = self.types[i])
+            for i in range(self.total_agents)
+        ]
+
+        self.action_dim = 2  # Assuming 2D action space
+        self.is_line_of_sight_free_fn = is_line_of_sight_free_fn
