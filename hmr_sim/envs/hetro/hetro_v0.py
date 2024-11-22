@@ -31,7 +31,11 @@ class HetroV0(BaseEnv):
             self.agents_positions = self.init_positions
         elif self.init_formation and len(self.init_formation) > 0:
             print(f"Using initialization formation: {self.init_formation}")
-            self.init_positions = init_homo_formation(self.init_formation, self.total_agents)
+            self.positions = []
+            for i in range(len(self.init_formation)):
+                self.positions.append(init_homo_formation(self.init_formation[i], self.num_agents[i]))   
+            self.init_positions = np.vstack(self.positions)
+
         else:
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________

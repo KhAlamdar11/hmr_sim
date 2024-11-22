@@ -69,6 +69,7 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 
 ### Hetro
 - [ ] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
+- [ ] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
 
 
 
