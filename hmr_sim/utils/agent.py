@@ -64,12 +64,21 @@ class Agent:
         if self.path is not None:
             self.state[:2] = self.path[self.path_idx%self.path_len]
             self.path_idx += 1
+        # else:
+        #     v = self.controller(self.agent_id,
+        #                         poses,
+        #                         swarm.compute_adjacency_matrix())
+        #     self.state[:2] += self.speed*v*0.7
         else:
-            # pass
             v = self.controller(self.agent_id,
-                                poses,
+                                self.get_pos(),
+                                self.neighbors,
                                 swarm.compute_adjacency_matrix())
             self.state[:2] += self.speed*v*0.7
+
+
+    def get_id(self):
+        return self.agent_id
 
 
     def follow_path(self):

@@ -66,16 +66,15 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 
 ### Homo
 - [ ] Raise error if formation is initialized within any obstacle
-- [ ] Implement path tracking in agent class
+- [ ] Integrate path tracking
 
 ### Hetro
 - [ ] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
 - [ ] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
+- [ ] Create UML of everything!!!
+- [ ] Add options for diff controllers!
+- [ ] Make connectivity controller distributed!
 
-
-Have controller interface for agents!
-Path planner, etc etc. How to?
-Path given as fictionary
 
 ## References
 
