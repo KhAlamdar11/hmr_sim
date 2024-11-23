@@ -2,6 +2,7 @@ from hmr_sim.utils.agent import Agent
 import numpy as np
 from scipy.spatial.distance import euclidean
 import math
+from hmr_sim.utils.utils import get_curve
 
 class Swarm:
     '''Manages a swarm of agents.'''
@@ -97,6 +98,10 @@ class HeterogeneousSwarm(Swarm):
 
         self.vis_radius = vis_radius
 
+        self.speed = speed
+
+        self.dt = dt
+
         #________________________  controller  ________________________
         delta = config.getfloat('delta')
         sigma = math.sqrt(-self.vis_radius/(2*math.log(delta)))
@@ -118,13 +123,20 @@ class HeterogeneousSwarm(Swarm):
 
         self.types = np.repeat(np.arange(len(num_agents)),num_agents)
 
+        # print(speed[self.types[0]])
+
         self.agents = [
             Agent(agent_id = i, 
                   init_pos = init_positions[i], 
-                  speed = speed, 
+                  speed = speed[self.types[i]], 
                   dt = dt, 
                   vis_radius = vis_radius,
                   type = self.types[i],
                   controller_params = controller_params)
             for i in range(self.total_agents)
         ]
+
+    def set_all_paths(self,paths):
+        for idx in paths.keys():
+            path = get_curve(paths[idx], speed=self.speed[self.agents[idx].type], dt=self.dt)
+            self.agents[idx].set_path(path)

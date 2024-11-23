@@ -73,7 +73,8 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 - [ ] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
 - [ ] Create UML of everything!!!
 - [ ] Add options for diff controllers!
-- [ ] Make connectivity controller distributed!
+- [x] Make connectivity controller distributed!
+- [ ] Fix path speed bug
 
 
 ## References

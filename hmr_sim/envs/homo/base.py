@@ -12,9 +12,6 @@ class BaseEnv(gym.Env):
         super().__init__()
         
         self.dt = config.getfloat('dt', 0.1)  # Returns float
-        self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
-        
-        self.speed = config.getfloat('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
 
         self.occupancy_grid = None  # To be loaded via config
         self.origin = None

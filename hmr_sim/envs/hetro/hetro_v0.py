@@ -41,6 +41,15 @@ class HetroV0(BaseEnv):
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________       
 
+        #  self.vis_radius = self.parse_config_entry(config.get('vis_radius', fallback="{}"), "vis_radius", type='dict')
+        self.speed = self.parse_config_entry(config.get('robot_speed', fallback="{}"), "robot_speed", type='dict')
+
+        self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
+        # self.speed = config.getfloat('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
+
+        # print(self.vis_radius)
+        # print(self.speed)
+
         self.swarm = HeterogeneousSwarm(
             num_agents=self.num_agents,
             init_positions=self.init_positions,
@@ -54,11 +63,8 @@ class HetroV0(BaseEnv):
 
         # Paths
         self.paths = self.parse_config_entry(config.get('paths', fallback="{}"), "paths", type='dict')
-        for idx in self.paths.keys():
-            path = get_curve(self.paths[idx], speed=self.speed, dt=self.dt)
-            # print(path)
-            self.swarm.set_agent_path(idx,path)
-
+        self.swarm.set_all_paths(self.paths)            
+        
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)
