@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
 
-def render_homo(self,communication_radius=None):
+def render_homo(self):
     """
     Render the environment with a multi-agent swarm.
     All agents will have the same marker and sensory circle color.
@@ -50,15 +50,15 @@ def render_homo(self,communication_radius=None):
                                         mfc='red', mec='black', markersize=11, zorder=3)
             elif agent.type == 2:
                 marker, = self.ax.plot(agent.state[0], agent.state[1], 's', 
-                                        mfc='green', mec='black', markersize=11, zorder=3)
+                                        mfc='yellow', mec='black', markersize=11, zorder=3)
         
             self.agent_markers.append(marker)
 
             # Add sensory radius circle
-            sensor_circle = Circle((agent.state[0], agent.state[1]), agent.vis_radius, 
-                                    edgecolor='yellow', facecolor='yellow', linewidth=2.3, alpha=0.05, zorder=3)
-            self.ax.add_patch(sensor_circle)
-            self.sensor_circles.append(sensor_circle)
+            # sensor_circle = Circle((agent.state[0], agent.state[1]), agent.vis_radius, 
+            #                         edgecolor='yellow', facecolor='yellow', linewidth=2.3, alpha=0.03, zorder=3)
+            # self.ax.add_patch(sensor_circle)
+            # self.sensor_circles.append(sensor_circle)
 
         # Automatically set plot limits based on the occupancy grid extent
         self.ax.set_xlim(extent[0], extent[1])
@@ -83,7 +83,7 @@ def render_homo(self,communication_radius=None):
 
     # Draw adjacency lines if communication_radius is provided
     if self.vis_radius is not None:
-        adjacency_matrix = self.swarm.compute_adjacency_matrix(self.vis_radius)
+        adjacency_matrix = self.swarm.compute_adjacency_matrix()
         positions = [agent.state[:2] for agent in self.swarm.agents]
 
         for i, pos_i in enumerate(positions):
@@ -95,7 +95,7 @@ def render_homo(self,communication_radius=None):
 
     # Draw paths for each agent
     for i, agent in enumerate(self.swarm.agents):
-        if agent.path:
+        if agent.path is not None:
             path_x = [p[0] for p in agent.path]
             path_y = [p[1] for p in agent.path]
 
@@ -104,7 +104,7 @@ def render_homo(self,communication_radius=None):
                 self.paths[i].set_data(path_x, path_y)
             else:
                 # Create a new path line
-                path_line, = self.ax.plot(path_x, path_y, 'r-', linewidth=2, zorder=2)
+                path_line, = self.ax.plot(path_x, path_y, color='green', linestyle='--', linewidth=2, alpha=0.3, zorder=2)
                 self.paths[i] = path_line
 
     # Incremental update for the plot

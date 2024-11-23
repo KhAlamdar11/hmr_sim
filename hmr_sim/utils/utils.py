@@ -1,6 +1,7 @@
 import numpy as np
+import math
 
-def init_homo_formation(formation, num_agents=5):
+def get_curve(formation, num_points=5, speed=None, dt=None):
     """
     Initialize agent positions based on the given formation.
 
@@ -9,7 +10,7 @@ def init_homo_formation(formation, num_agents=5):
                          - ["Circle", [x, y], radius]
                          - ["Elipse", [x, y], major_radius, minor_radius (optional)]
                          - ["Square", [x, y], side_length]
-        num_agents (int): Number of agents.
+        num_points (int): Number of agents.
 
     Returns:
         np.ndarray: Array of positions as [[x, y], [x, y], ...].
@@ -17,16 +18,23 @@ def init_homo_formation(formation, num_agents=5):
     formation_type = formation[0].lower()
     origin = np.array(formation[1])  # Extract the origin
     
+    if speed is not None:
+        dist_per_step = speed * dt
+
     if formation_type == "circle":
         radius = formation[2]
-        angles = np.linspace(0, 2 * np.pi, num_agents, endpoint=False)
+        if speed is not None:
+            num_points = int(2*math.pi*radius/dist_per_step)
+        angles = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
         positions = np.array([[radius * np.cos(angle), radius * np.sin(angle)] for angle in angles])
         return positions + origin  # Offset positions by origin
     
     elif formation_type == "elipse":
         major_radius = formation[2]
+        if speed is not None:
+            num_points = int(9.68*major_radius/dist_per_step)
         minor_radius = formation[3] if len(formation) > 3 else major_radius / 2  # Default minor radius
-        angles = np.linspace(0, 2 * np.pi, num_agents, endpoint=False)
+        angles = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
         positions = np.array([[major_radius * np.cos(angle), minor_radius * np.sin(angle)] for angle in angles])
         return positions + origin  # Offset positions by origin
     
@@ -34,9 +42,12 @@ def init_homo_formation(formation, num_agents=5):
         side_length = formation[2]
         half_side = side_length / 2
         
+        if speed is not None:
+            num_points = int(4*side_length/dist_per_step)
+
         # Distribute agents along the four sides of the square
-        per_side = max(1, num_agents // 4)
-        remainder = num_agents % 4
+        per_side = max(1, num_points // 4)
+        remainder = num_points % 4
         
         # Generate points along each side
         top = np.linspace(-half_side, half_side, per_side + (1 if remainder > 0 else 0), endpoint=False)
@@ -53,7 +64,7 @@ def init_homo_formation(formation, num_agents=5):
         ])
         
         # Trim to the number of agents
-        return positions[:num_agents] + origin  # Offset positions by origin
+        return positions[:num_points] + origin  # Offset positions by origin
     
     else:
         raise ValueError(f"Unsupported formation type: {formation_type}")

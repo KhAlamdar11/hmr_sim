@@ -6,7 +6,7 @@ from gymnasium import spaces
 from hmr_sim.envs.homo.base import BaseEnv
 
 from hmr_sim.utils.swarm import Swarm
-from hmr_sim.utils.init_formation import init_homo_formation
+from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.vis import render_homo
 
 class HomoV0(BaseEnv):
@@ -28,7 +28,7 @@ class HomoV0(BaseEnv):
             self.agents_positions = self.init_positions
         elif self.init_formation and len(self.init_formation) > 0:
             print(f"Using initialization formation: {self.init_formation}")
-            self.init_positions = init_homo_formation(self.init_formation, self.num_agents)
+            self.init_positions = get_curve(self.init_formation, self.num_agents)
         else:
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________

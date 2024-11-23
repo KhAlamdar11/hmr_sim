@@ -107,12 +107,14 @@ class BaseEnv(gym.Env):
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         for i, agent in enumerate(self.swarm.agents):
-            agent.state[:2] = self.init_positions[i]
-            agent.state[2:] = 0
+            if agent.path is None:
+                agent.state[:2] = self.init_positions[i]
+                agent.state[2:] = 0
         return self.swarm.get_states(), {}
 
-    def step(self, actions):
-        self.swarm.step(actions, self.is_free_space)
+    def step(self, actions=None):
+        if actions is not None:
+            self.swarm.step(actions, self.is_free_space)
         
         rewards = np.zeros(self.num_agents)  
         terminated = False
@@ -126,3 +128,6 @@ class BaseEnv(gym.Env):
     def render(self, mode='human'):
         """Renders the swarm."""
         pass
+
+    def controller(self):
+        self.swarm.run_controllers()

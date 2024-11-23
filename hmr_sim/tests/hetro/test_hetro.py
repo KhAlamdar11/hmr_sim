@@ -25,8 +25,10 @@ def run(args):
     t = 0
 
     while not done:
-        # action = env.unwrapped.get_dummy_action() #+ [0.1, 0.0]
-        # obs, reward, terminated, truncated, info = env.step(action)
+        # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
+        # if t < 100:
+        env.unwrapped.controller()
+        obs, reward, terminated, truncated, info = env.step(None)
         # done = terminated or truncated
 
         # Render the environment
@@ -35,6 +37,8 @@ def run(args):
         # Print debug info (optional)
         # if t % 10 == 0:  # Log every 10 steps
         #     print(f"Step {t}: Reward: {reward}, Done: {done}")
+
+        t+=1
 
     print("Simulation ended.")
 
