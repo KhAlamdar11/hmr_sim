@@ -1,15 +1,18 @@
 from hmr_sim.utils.agent import Agent
 import numpy as np
 from scipy.spatial.distance import euclidean
+import math
 
 class Swarm:
     '''Manages a swarm of agents.'''
 
     def __init__(self, num_agents, init_positions, speed, dt, vis_radius, is_line_of_sight_free_fn):
+        
         self.agents = [
             Agent(agent_id=i, init_pos=init_positions[i], speed=speed, dt=dt, vis_radius=vis_radius)
             for i in range(num_agents)
         ]
+        
         self.action_dim = 2 
 
         self.vis_radius = vis_radius
@@ -87,24 +90,41 @@ class Swarm:
 class HeterogeneousSwarm(Swarm):
     """Manages a swarm of heterogeneous agents."""
 
-    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, is_line_of_sight_free_fn):
+    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, is_line_of_sight_free_fn, config):
         
+        self.action_dim = 2  # Assuming 2D action space
+        self.is_line_of_sight_free_fn = is_line_of_sight_free_fn
+
+        self.vis_radius = vis_radius
+
+        #________________________  controller  ________________________
+        delta = config.getfloat('delta')
+        sigma = math.sqrt(-self.vis_radius/(2*math.log(delta)))
+        controller_params = {'battery_aware': config.getint('battery_aware'),
+                                    'sigma':sigma,
+                                    'range':self.vis_radius,
+                                    'normalized': config.getint('normalized'),
+                                    'epsilon': config.getfloat('epsilon'),
+                                    'gainConnectivity': config.getfloat('gainConnectivity'),
+                                    'gainRepel': config.getfloat('gainRepel'),
+                                    'repelThreshold': self.vis_radius*config.getfloat('repelThreshold'),
+                                    'unweighted': config.getint('unweighted'),
+                                    'v_max': config.getfloat('uav_v_max'),
+                                    'critical_battery_level': config.getfloat('critical_battery_level'),
+                                    'tau': config.getfloat('tau')}
+
         self.num_agents = num_agents
         self.total_agents = np.sum(self.num_agents)
 
         self.types = np.repeat(np.arange(len(num_agents)),num_agents)
 
         self.agents = [
-            Agent(agent_id=i, 
-                  init_pos=init_positions[i], 
-                  speed=speed, 
-                  dt=dt, 
-                  vis_radius=vis_radius,
-                  type = self.types[i])
+            Agent(agent_id = i, 
+                  init_pos = init_positions[i], 
+                  speed = speed, 
+                  dt = dt, 
+                  vis_radius = vis_radius,
+                  type = self.types[i],
+                  controller_params = controller_params)
             for i in range(self.total_agents)
         ]
-
-        self.action_dim = 2  # Assuming 2D action space
-        self.is_line_of_sight_free_fn = is_line_of_sight_free_fn
-
-        self.vis_radius = vis_radius

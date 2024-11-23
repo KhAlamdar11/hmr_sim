@@ -47,7 +47,8 @@ class HetroV0(BaseEnv):
             speed=self.speed,
             dt=self.dt,
             vis_radius=self.vis_radius,
-            is_line_of_sight_free_fn=self.is_line_of_sight_free  # Corrected parameter name
+            is_line_of_sight_free_fn=self.is_line_of_sight_free,  # Corrected parameter name
+            config = config # for extracting controller params
         )
 
 

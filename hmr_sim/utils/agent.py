@@ -5,7 +5,7 @@ import math
 class Agent:
     '''Represents a single independent.'''
     
-    def __init__(self, agent_id, init_pos, speed, dt, vis_radius, type=0):
+    def __init__(self, agent_id, init_pos, speed, dt, vis_radius, type=0, controller_params=None):
         self.agent_id = agent_id
         self.state = np.zeros(4)
         self.state[:2] = init_pos
@@ -20,20 +20,20 @@ class Agent:
         
         # if controller is not None:
         #________________________  controller  ________________________
-        delta = 0.2
-        repelThreshold = 0.6
-        controller_params = {'battery_aware': 0,
-                                    'sigma': math.sqrt(-self.vis_radius/(2*math.log(delta))),
-                                    'range': self.vis_radius,
-                                    'normalized': 0,
-                                    'epsilon': 0.01,
-                                    'gainConnectivity': 1.0,
-                                    'gainRepel': 0.1,
-                                    'repelThreshold': self.vis_radius*repelThreshold,
-                                    'unweighted': 1,
-                                    'v_max': 0.6,
-                                    'critical_battery_level': 0.14,
-                                    'tau': 0.01}
+        # delta = 0.2
+        # repelThreshold = 0.6
+        # controller_params = {'battery_aware': 0,
+        #                             'sigma': math.sqrt(-self.vis_radius/(2*math.log(delta))),
+        #                             'range': self.vis_radius,
+        #                             'normalized': 0,
+        #                             'epsilon': 0.01,
+        #                             'gainConnectivity': 1.0,
+        #                             'gainRepel': 0.1,
+        #                             'repelThreshold': self.vis_radius*repelThreshold,
+        #                             'unweighted': 1,
+        #                             'v_max': 0.6,
+        #                             'critical_battery_level': 0.14,
+        #                             'tau': 0.01}
         self.controller = ConnectivityController(params=controller_params)
 
     
