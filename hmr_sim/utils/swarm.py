@@ -28,7 +28,7 @@ class Swarm:
 
     def step(self, actions, is_free_space_fn):
         for agent, action in zip(self.agents, actions):
-            agent.update_state(action, is_free_space_fn)
+            agent.update_state(self, action, is_free_space_fn)
 
 
     def compute_adjacency_matrix(self):
@@ -85,7 +85,7 @@ class Swarm:
     def run_controllers(self):
         self.update_neighbors()
         for agent in self.agents:
-            agent.run_controller(self,self.get_poses())
+            agent.run_controller(self)
 
 
 class HeterogeneousSwarm(Swarm):
