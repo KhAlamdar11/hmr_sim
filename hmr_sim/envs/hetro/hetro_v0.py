@@ -25,7 +25,6 @@ class HetroV0(BaseEnv):
         self.init_positions = self.parse_config_entry(config.get('init_positions', "[]"), "init_positions",type='array')
         self.init_formation = self.parse_config_entry(config.get('init_formation', "[]"), "init_formation")
 
-        print(self.init_positions)
         # Initialize agents based on available configuration
         if self.init_positions.any() and len(self.init_positions) > 0:
             print("Using custom initialization positions.")
@@ -41,14 +40,9 @@ class HetroV0(BaseEnv):
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________       
 
-        #  self.vis_radius = self.parse_config_entry(config.get('vis_radius', fallback="{}"), "vis_radius", type='dict')
         self.speed = self.parse_config_entry(config.get('robot_speed', fallback="{}"), "robot_speed", type='dict')
 
         self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
-        # self.speed = config.getfloat('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
-
-        # print(self.vis_radius)
-        # print(self.speed)
 
         self.swarm = HeterogeneousSwarm(
             num_agents=self.num_agents,
@@ -56,16 +50,14 @@ class HetroV0(BaseEnv):
             speed=self.speed,
             dt=self.dt,
             vis_radius=self.vis_radius,
-            is_line_of_sight_free_fn=self.is_line_of_sight_free,  # Corrected parameter name
-            config = config # for extracting controller params
+            is_line_of_sight_free_fn=self.is_line_of_sight_free, 
+            config = config 
         )
-
 
         # Paths
         self.paths = self.parse_config_entry(config.get('paths', fallback="{}"), "paths", type='dict')
         self.swarm.set_all_paths(self.paths)            
         
-
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)
         self.action_space = spaces.Box(
@@ -75,6 +67,7 @@ class HetroV0(BaseEnv):
 
     def render(self, mode='human'):
         render_homo(self)
+
 
     def parse_config_entry(self, entry, entry_name, type='none'):
         """Parse and validate a configuration entry."""

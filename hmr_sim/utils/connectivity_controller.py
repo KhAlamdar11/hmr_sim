@@ -54,6 +54,10 @@ class ConnectivityController:
             dx = agent_position[0] - neighbor_position[0]
             dy = agent_position[1] - neighbor_position[1]
 
+            print(A.shape)
+            print(agent.agent_id)
+            print(fiedler_vector.shape)
+
             # Compute the interaction gain
             if fiedler_value > self.params['epsilon']:
                 k = (-(1 / (self.params['sigma'] ** 2)) *

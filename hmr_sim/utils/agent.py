@@ -1,6 +1,8 @@
 import numpy as np
 from hmr_sim.utils.connectivity_controller import ConnectivityController
 import math
+from collections import defaultdict, deque
+
 
 class Agent:
     '''Represents a single independent.'''
@@ -38,11 +40,6 @@ class Agent:
         self.state[:2] = path[0]
         self.path_len = len(self.path)
 
-        
-    def compute_local_observation(self, occupancy_grid, origin, resolution):
-        '''Computes local sensor observations.'''
-        pass
-
 
     def run_controller(self, swarm):
         """
@@ -50,19 +47,19 @@ class Agent:
 
         Parameters:
         swarm (Swarm): The swarm object containing other agents.
-        poses (np.ndarray): Current poses of all agents.
-        sensor_radius (float): Radius within which the agent checks for obstacles.
-        is_free_path_fn (function): Function to check if the path is free of obstacles.
         """
         if self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
             self.path_idx += 1
         else:
             # Run connectivity controller to compute the velocity
+
+            A, neighbor_ids = self.compute_adjacency()
+
             v = self.controller(self.agent_id,
                                 self.get_pos(),
                                 self.neighbors,
-                                swarm.compute_adjacency_matrix())
+                                A)
             
             # Compute proposed position
             proposed_position = self.state[:2] + self.speed * v * self.dt
@@ -74,6 +71,55 @@ class Agent:
             # Update state with the adjusted position
             self.state[:2] = adjusted_position
 
+
+    def get_data(self):
+        return {"id": self.agent_id, "position": self.state[:2]}
+    
+    
+    def compute_adjacency(self):
+
+        # Adjacency representation (dynamic growing dictionary)
+        adjacency = defaultdict(set)
+
+        # Queue for BFS traversal
+        queue = deque([self])
+        visited = set()  # Track visited agents by ID
+
+        while queue:
+            current_agent = queue.popleft()
+            current_info = current_agent.get_data()
+            current_id = current_info["id"]
+
+            if current_id in visited:
+                continue
+
+            visited.add(current_id)
+
+            # Process current agent's neighbors
+            for neighbor in current_agent.neighbors:
+                neighbor_info = neighbor.get_data()
+                neighbor_id = neighbor_info["id"]
+
+                # Update adjacency structure
+                adjacency[current_id].add(neighbor_id)
+                adjacency[neighbor_id].add(current_id)  # Ensure it's bidirectional
+
+                if neighbor_id not in visited:
+                    queue.append(neighbor)
+
+        # Convert adjacency dictionary to matrix representation
+        all_ids = sorted(adjacency.keys())  # Ensure consistent ordering
+        id_to_index = {agent_id: index for index, agent_id in enumerate(all_ids)}
+        size = len(all_ids)
+        matrix = [[0] * size for _ in range(size)]
+
+
+        for agent_id, neighbors in adjacency.items():
+            for neighbor_id in neighbors:
+                i, j = id_to_index[agent_id], id_to_index[neighbor_id]
+                matrix[i][j] = 1
+
+        return np.array(matrix), all_ids
 
 
     def get_id(self):
@@ -95,9 +141,19 @@ class Agent:
 
     def get_neighbors_pos(self):
         positions = []
+        ids = []
+        
+        # Collect IDs and positions from neighbors
         for agent in self.neighbors:
+            ids.append(agent.get_id())
             positions.append(agent.get_pos())
-        return np.array(positions)
+        
+        # Pair IDs with positions, sort pairs by ID, and extract sorted positions
+        paired = list(zip(ids, positions))  # [(id1, pos1), (id2, pos2), ...]
+        sorted_paired = sorted(paired)      # Sort by ID (ascending)
+        sorted_positions = [pos for _, pos in sorted_paired]  # Extract positions
+        
+        return np.array(sorted_positions)
 
     
     def get_pos(self):
