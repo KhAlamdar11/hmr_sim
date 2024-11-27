@@ -91,7 +91,7 @@ class Swarm:
 class HeterogeneousSwarm(Swarm):
     """Manages a swarm of heterogeneous agents."""
 
-    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, is_line_of_sight_free_fn, config):
+    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, agent_types, path_planners, is_line_of_sight_free_fn, config):
         
         self.action_dim = 2  # Assuming 2D action space
         self.is_line_of_sight_free_fn = is_line_of_sight_free_fn
@@ -132,11 +132,14 @@ class HeterogeneousSwarm(Swarm):
                   dt = dt, 
                   vis_radius = vis_radius,
                   type = self.types[i],
+                  controller_type = agent_types[self.types[i]],
+                  path_planner = path_planners[i],
                   controller_params = controller_params)
             for i in range(self.total_agents)
         ]
 
     def set_all_paths(self,paths):
         for idx in paths.keys():
-            path = get_curve(paths[idx], speed=self.speed[self.agents[idx].type], dt=self.dt)
-            self.agents[idx].set_path(path)
+            if self.agents[idx].controller_type == 'path_tracker':
+                path = get_curve(paths[idx], speed=self.speed[self.agents[idx].type], dt=self.dt)
+                self.agents[idx].set_path(path)

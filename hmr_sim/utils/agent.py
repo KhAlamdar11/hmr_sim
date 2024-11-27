@@ -7,7 +7,7 @@ from collections import defaultdict, deque
 class Agent:
     '''Represents a single independent.'''
     
-    def __init__(self, agent_id, init_pos, speed, dt, vis_radius, type=0, controller_params=None):
+    def __init__(self, agent_id, init_pos, speed, dt, vis_radius, type=0, controller_type=None, path_planner = None, controller_params=None):
         self.agent_id = agent_id
         self.state = np.zeros(4)
         self.state[:2] = init_pos
@@ -18,11 +18,17 @@ class Agent:
         self.path_idx = 0
         self.path_len = 0
         self.type = type
-        self.neighbors = None
-
+        self.neighbors = None        
+        
         #________________________  controller  ________________________
-        if controller_params is not None:
+        self.controller_type = controller_type
+
+        if self.controller_type == 'connectivity_controller':
             self.controller = ConnectivityController(params=controller_params)
+        elif self.controller_type == 'go_to_goal' and path_planner is not None:
+            print("planning path")
+            self.controller = path_planner
+            self.set_path(path_planner.plan_path(self.state[:2]))
 
     
     def update_state(self, swarm, action, is_free_space_fn):
@@ -36,6 +42,7 @@ class Agent:
         self.state[:2] = adjusted_position
 
     def set_path(self,path):
+        print(self.agent_id)
         self.path = path
         self.state[:2] = path[0]
         self.path_len = len(self.path)
@@ -48,19 +55,14 @@ class Agent:
         Parameters:
         swarm (Swarm): The swarm object containing other agents.
         """
-        if self.path is not None:
-            self.state[:2] = self.path[self.path_idx % self.path_len]
-            self.path_idx += 1
-        else:
-            # Run connectivity controller to compute the velocity
 
+        if self.controller_type == 'connectivity_controller':
             A, neighbor_ids = self.compute_adjacency()
-
             v = self.controller(self.agent_id,
                                 self.get_pos(),
                                 self.neighbors,
                                 A)
-            
+            print(v)
             # Compute proposed position
             proposed_position = self.state[:2] + self.speed * v * self.dt
 
@@ -70,7 +72,18 @@ class Agent:
 
             # Update state with the adjusted position
             self.state[:2] = adjusted_position
-
+        
+        elif self.controller_type == 'path_tracker' and self.path is not None:
+            self.state[:2] = self.path[self.path_idx % self.path_len]
+            self.path_idx += 1
+        elif self.controller_type == 'go_to_goal' and self.path is not None:
+            if self.path_idx < self.path_len:
+                displacement = self.path[self.path_idx] - self.state[:2]
+                if np.linalg.norm(displacement) > 0.05:
+                    self.state[:2] += (displacement / np.linalg.norm(displacement)) * self.speed if np.linalg.norm(displacement) != 0 else np.zeros_like(displacement)
+                else:
+                    self.state[:2] = self.path[self.path_idx]
+                    self.path_idx+=1
 
     def get_data(self):
         return {"id": self.agent_id, "position": self.state[:2]}
@@ -159,7 +172,7 @@ class Agent:
     def get_pos(self):
         return self.state[:2]
     
-    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=16,sensor_radius=0.5):
+    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=16,sensor_radius=0.25):
         """
         Adjust the proposed position to avoid collisions using free path sampling.
 

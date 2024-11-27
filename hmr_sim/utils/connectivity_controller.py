@@ -54,9 +54,9 @@ class ConnectivityController:
             dx = agent_position[0] - neighbor_position[0]
             dy = agent_position[1] - neighbor_position[1]
 
-            print(A.shape)
-            print(agent.agent_id)
-            print(fiedler_vector.shape)
+            # print(A.shape)
+            # print(agent.agent_id)
+            # print(fiedler_vector.shape)
 
             # Compute the interaction gain
             if fiedler_value > self.params['epsilon']:
@@ -67,14 +67,19 @@ class ConnectivityController:
                 k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[agent_idx] - fiedler_vector[neighbor_id]) ** 2))
 
             # Accumulate control contributions
-            control_vector[0] += k * dx
-            control_vector[1] += k * dy
+            if agent.type == 2:
+                control_vector[0] += k * dx * 3 
+                control_vector[1] += k * dy * 3
+            else:
+                control_vector[0] += k * dx 
+                control_vector[1] += k * dy
+
 
         # Scale control input
         control_vector = control_vector * self.params['gainConnectivity'] \
                                         + self.calculate_repulsion_forces(agent_position, neighbors)
 
-        return control_vector
+        return np.clip(control_vector, -0.1, 0.1)
 
 
     def calculate_repulsion_forces(self, agent_position, neighbor_positions):

@@ -9,6 +9,9 @@ from hmr_sim.envs.homo.base import BaseEnv
 from hmr_sim.utils.swarm import HeterogeneousSwarm
 from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.vis import render_homo
+from hmr_sim.utils.rrt import RRT
+
+np.random.seed(12)
 
 class HetroV0(BaseEnv):
 
@@ -23,19 +26,18 @@ class HetroV0(BaseEnv):
         #______________________  Formation Initialization  ______________________
         # Parse initialization positions and formation from the config file
         self.init_positions = self.parse_config_entry(config.get('init_positions', "[]"), "init_positions",type='array')
-        self.init_formation = self.parse_config_entry(config.get('init_formation', "[]"), "init_formation")
+        self.init_formation = self.parse_config_entry(config.get('init_formation', "{}"), "init_formation", type='dict')
 
         # Initialize agents based on available configuration
         if self.init_positions.any() and len(self.init_positions) > 0:
             print("Using custom initialization positions.")
             self.agents_positions = self.init_positions
-        elif self.init_formation and len(self.init_formation) > 0:
+        elif self.init_formation:
             print(f"Using initialization formation: {self.init_formation}")
             self.positions = []
-            for i in range(len(self.init_formation)):
+            for i in self.init_formation.keys():
                 self.positions.append(get_curve(self.init_formation[i], self.num_agents[i]))   
             self.init_positions = np.vstack(self.positions)
-
         else:
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________       
@@ -44,12 +46,26 @@ class HetroV0(BaseEnv):
 
         self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
 
+        self.agent_types = self.parse_config_entry(config.get('agent_types', "{}"), "agent_types", type='dict')
+
+        self.goals = self.parse_config_entry(config.get('goals', "{}"), "goals", type='dict')
+
+        print(self.goals)
+
+        path_planners = [None for _ in range(self.total_agents)]
+        for id in self.goals.keys():
+            print(id)
+            path_planners[id] = RRT(self)
+            path_planners[id].set_goal(self.goals[id])
+
         self.swarm = HeterogeneousSwarm(
             num_agents=self.num_agents,
             init_positions=self.init_positions,
             speed=self.speed,
             dt=self.dt,
             vis_radius=self.vis_radius,
+            agent_types = self.agent_types,
+            path_planners = path_planners,
             is_line_of_sight_free_fn=self.is_line_of_sight_free, 
             config = config 
         )
