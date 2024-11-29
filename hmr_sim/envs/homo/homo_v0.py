@@ -14,10 +14,10 @@ class HomoV0(BaseEnv):
     def __init__(self, config):
         super().__init__(config)
 
-        self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
-        self.speed = config.getfloat('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
+        self.vis_radius = config.get('vis_radius', 5.0)  # Returns float
+        self.speed = config.get('robot_speed', 1.0)  # Use getfloat() to ensure speed is a float
 
-        self.num_agents = config.getint('num_agents', 2) 
+        self.num_agents = config.get('num_agents', 2) 
 
         #______________________  Formation Initialization  ______________________
         # Parse initialization positions and formation from the config file

@@ -6,6 +6,8 @@ import configparser
 import gymnasium as gym  # Ensure updated Gymnasium import
 import hmr_sim
 
+import yaml
+
 def run(args):
     # Load environment
     env_name = args.get('env')
@@ -15,7 +17,7 @@ def run(args):
     env = gym.make(env_name, config=args)
 
     # Set random seeds for reproducibility
-    seed = args.getint('seed', 0)
+    seed = args.get('seed', 0)
     random.seed(seed)
     np.random.seed(seed)
 
@@ -58,11 +60,12 @@ def main():
     config_file_path = path.join(path.dirname(__file__), config_file)
     print(f"Loading configuration from: {config_file_path}")
 
-    config = configparser.ConfigParser()
-    config.read(config_file_path)
+    # Load the configuration
+    with open(config_file_path, 'r') as file:
+        config = yaml.safe_load(file)
 
     # Run the simulation using the default section of the config
-    run(config[config.default_section])
+    run(config)
 
 if __name__ == "__main__":
     main()

@@ -103,20 +103,12 @@ class HeterogeneousSwarm(Swarm):
         self.dt = dt
 
         #________________________  controller  ________________________
-        delta = config.getfloat('delta')
-        sigma = math.sqrt(-self.vis_radius/(2*math.log(delta)))
-        controller_params = {'battery_aware': config.getint('battery_aware'),
-                                    'sigma':sigma,
-                                    'range':self.vis_radius,
-                                    'normalized': config.getint('normalized'),
-                                    'epsilon': config.getfloat('epsilon'),
-                                    'gainConnectivity': config.getfloat('gainConnectivity'),
-                                    'gainRepel': config.getfloat('gainRepel'),
-                                    'repelThreshold': self.vis_radius*config.getfloat('repelThreshold'),
-                                    'unweighted': config.getint('unweighted'),
-                                    'v_max': config.getfloat('uav_v_max'),
-                                    'critical_battery_level': config.getfloat('critical_battery_level'),
-                                    'tau': config.getfloat('tau')}
+        controller_params = config.get('controller_params')
+        print("delta ",controller_params['delta'])
+        sigma = math.sqrt(-self.vis_radius/(2*math.log(controller_params['delta'])))
+        controller_params['sigma'] = sigma
+        controller_params['range'] = self.vis_radius
+        controller_params['repelThreshold'] = self.vis_radius*controller_params['repelThreshold']
 
         self.num_agents = num_agents
         self.total_agents = np.sum(self.num_agents)

@@ -62,7 +62,10 @@ class Agent:
                                 self.get_pos(),
                                 self.neighbors,
                                 A)
-            print(v)
+            # print('----------------')
+            # print(self.speed)
+            # print(self.dt)
+            # print(v)
             # Compute proposed position
             proposed_position = self.state[:2] + self.speed * v * self.dt
 

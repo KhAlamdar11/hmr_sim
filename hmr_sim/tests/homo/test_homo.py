@@ -15,7 +15,7 @@ def run(args):
     env = gym.make(env_name, config=args)
 
     # Set random seeds for reproducibility
-    seed = args.getint('seed', 0)
+    seed = args.get('seed', 0)
     random.seed(seed)
     np.random.seed(seed)
 

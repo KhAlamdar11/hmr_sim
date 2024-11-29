@@ -18,15 +18,14 @@ class HetroV0(BaseEnv):
     def __init__(self, config):
         super().__init__(config)
 
-        self.num_agents = self.parse_config_entry(config.get('num_agents', []),
-                                                  entry_name='num_agents',
-                                                  type='array')
+        self.num_agents = config.get('num_agents', [])
+
         self.total_agents = np.sum(self.num_agents)
 
         #______________________  Formation Initialization  ______________________
         # Parse initialization positions and formation from the config file
-        self.init_positions = self.parse_config_entry(config.get('init_positions', "[]"), "init_positions",type='array')
-        self.init_formation = self.parse_config_entry(config.get('init_formation', "{}"), "init_formation", type='dict')
+        self.init_positions = np.array(config.get('init_positions', "[]"))
+        self.init_formation = config.get('init_formation', "{}")
 
         # Initialize agents based on available configuration
         if self.init_positions.any() and len(self.init_positions) > 0:
@@ -36,25 +35,27 @@ class HetroV0(BaseEnv):
             print(f"Using initialization formation: {self.init_formation}")
             self.positions = []
             for i in self.init_formation.keys():
+                print('----------')
+                print(i)
+                print(self.init_formation[i])
+                print(self.num_agents[i])
                 self.positions.append(get_curve(self.init_formation[i], self.num_agents[i]))   
             self.init_positions = np.vstack(self.positions)
         else:
             raise ValueError("No valid initialization configuration provided.")
         #___________________________________________________________________________       
 
-        self.speed = self.parse_config_entry(config.get('robot_speed', fallback="{}"), "robot_speed", type='dict')
+        self.speed = config.get('robot_speed', {})
 
-        self.vis_radius = config.getfloat('vis_radius', 5.0)  # Returns float
+        self.vis_radius = config.get('vis_radius', 5.0)  # Returns float
 
-        self.agent_types = self.parse_config_entry(config.get('agent_types', "{}"), "agent_types", type='dict')
+        self.agent_types = config.get('agent_types', "{}")
 
-        self.goals = self.parse_config_entry(config.get('goals', "{}"), "goals", type='dict')
-
-        print(self.goals)
+        self.goals = config.get('goals', {})
 
         path_planners = [None for _ in range(self.total_agents)]
         for id in self.goals.keys():
-            print(id)
+            # print(id)
             path_planners[id] = RRT(self)
             path_planners[id].set_goal(self.goals[id])
 
@@ -71,7 +72,7 @@ class HetroV0(BaseEnv):
         )
 
         # Paths
-        self.paths = self.parse_config_entry(config.get('paths', fallback="{}"), "paths", type='dict')
+        self.paths = config.get('paths', {})
         self.swarm.set_all_paths(self.paths)            
         
         self.observation_space = spaces.Box(

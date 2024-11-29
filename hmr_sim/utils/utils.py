@@ -15,14 +15,16 @@ def get_curve(formation, num_points=5, speed=None, dt=None):
     Returns:
         np.ndarray: Array of positions as [[x, y], [x, y], ...].
     """
-    formation_type = formation[0].lower()
-    origin = np.array(formation[1])  # Extract the origin
+    print(formation)
+    formation_type = formation['shape'].lower()
+    origin = np.array(formation['origin'])  # Extract the origin
     
     if speed is not None:
         dist_per_step = speed * dt
 
     if formation_type == "circle":
-        radius = formation[2]
+        if 'radius' in formation.keys():
+            radius = formation['radius']
         if speed is not None:
             num_points = int(2*math.pi*radius/dist_per_step)
         angles = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
@@ -30,7 +32,8 @@ def get_curve(formation, num_points=5, speed=None, dt=None):
         return positions + origin  # Offset positions by origin
     
     elif formation_type == "elipse":
-        major_radius = formation[2]
+        if 'major_radius' in formation.keys():
+            major_radius = formation['major_radius']
         if speed is not None:
             num_points = int(9.68*major_radius/dist_per_step)
         minor_radius = formation[3] if len(formation) > 3 else major_radius / 2  # Default minor radius
@@ -39,8 +42,9 @@ def get_curve(formation, num_points=5, speed=None, dt=None):
         return positions + origin  # Offset positions by origin
     
     elif formation_type == "square":
-        side_length = formation[2]
-        half_side = side_length / 2
+        if 'side' in formation.keys():
+            side_length = formation['side']
+            half_side = side_length / 2
         
         if speed is not None:
             num_points = int(4*side_length/dist_per_step)

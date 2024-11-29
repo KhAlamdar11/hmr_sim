@@ -11,7 +11,7 @@ class BaseEnv(gym.Env):
     def __init__(self, config):
         super().__init__()
         
-        self.dt = config.getfloat('dt', 0.1)  # Returns float
+        self.dt = config.get('dt')  # Returns float
 
         self.occupancy_grid = None  # To be loaded via config
         self.origin = None
