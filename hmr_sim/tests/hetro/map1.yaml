@@ -60,12 +60,12 @@ init_formation:
 
 # Robot speed for each agent type
 robot_speed:
-  0: 2.0
+  0: 0.5
   1: 0.1
   2: 0.01
 
 # Visibility radius of each agent
-vis_radius: 3.0
+vis_radius: 2.5
 
 # Time step for the simulation
 dt: 0.1

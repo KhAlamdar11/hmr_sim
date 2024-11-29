@@ -80,9 +80,9 @@ class ConnectivityController:
         control_vector = control_vector * self.params['gainConnectivity'] \
                                         + self.calculate_repulsion_forces(agent_position, neighbors)
 
-        return control_vector
+        # return control_vector
 
-        # return np.clip(control_vector, -0.1, 0.1)
+        return np.clip(control_vector, -0.3, 0.3)
 
 
     def calculate_repulsion_forces(self, agent_position, neighbor_positions):

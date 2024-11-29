@@ -29,11 +29,13 @@ def run(args):
     while not done:
         # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
         # if t < 100:
-        if t > 30:
-            env.unwrapped.controller()
-        obs, reward, terminated, truncated, info = env.step(None)
+        try:
+            if t > 30:
+                env.unwrapped.controller()
+            obs, reward, terminated, truncated, info = env.step(None)
         # done = terminated or truncated
-
+        except:
+            pass
         # Render the environment
         env.render()
 
