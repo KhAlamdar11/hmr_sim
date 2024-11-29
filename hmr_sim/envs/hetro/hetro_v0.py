@@ -4,9 +4,9 @@ import json
 from gymnasium import spaces
 import ast
 
-from hmr_sim.envs.homo.base import BaseEnv
+from hmr_sim.envs.hetro.base import BaseEnv
 
-from hmr_sim.utils.swarm import HeterogeneousSwarm
+from hmr_sim.utils.swarm import Swarm
 from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.vis import render_homo
 from hmr_sim.utils.rrt import RRT
@@ -54,12 +54,13 @@ class HetroV0(BaseEnv):
         self.goals = config.get('goals', {})
 
         path_planners = [None for _ in range(self.total_agents)]
-        for id in self.goals.keys():
-            # print(id)
-            path_planners[id] = RRT(self)
-            path_planners[id].set_goal(self.goals[id])
+        if self.goals:
+            for id in self.goals.keys():
+                # print(id)
+                path_planners[id] = RRT(self)
+                path_planners[id].set_goal(self.goals[id])
 
-        self.swarm = HeterogeneousSwarm(
+        self.swarm = Swarm(
             num_agents=self.num_agents,
             init_positions=self.init_positions,
             speed=self.speed,

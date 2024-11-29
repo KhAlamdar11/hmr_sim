@@ -26,7 +26,7 @@ class ConnectivityController:
         self.critical_battery_level = self.params['critical_battery_level']
 
 
-    def __call__(self, agent_idx, agent_position, neighbors, A):
+    def __call__(self, agent_idx, agent_position, neighbors, A, id_to_index):
         """
         Compute the control input for a specific UAV based on its position and neighbors.
 
@@ -39,6 +39,11 @@ class ConnectivityController:
         ndarray: Control input for the agent.
         """
 
+        print("A ", A)
+
+        if A.size == 0:
+            return np.array([0,0])
+
         # Compute Fiedler value and vector
         fiedler_value = self.algebraic_connectivity(A)  # Update if adjacency is required
         fiedler_vector = self.compute_eig_vector(A)  # Update if adjacency is required
@@ -50,7 +55,7 @@ class ConnectivityController:
         for agent in neighbors:
 
             neighbor_position = agent.get_pos()
-            neighbor_id = agent.get_id()
+            neighbor_id = id_to_index[agent.get_id()]
 
             dx = agent_position[0] - neighbor_position[0]
             dy = agent_position[1] - neighbor_position[1]
@@ -63,9 +68,9 @@ class ConnectivityController:
             if fiedler_value > self.params['epsilon']:
                 k = (-(1 / (self.params['sigma'] ** 2)) *
                     (self.csch(fiedler_value - self.params['epsilon']) ** 2)) * (
-                        ((fiedler_vector[agent_idx] - fiedler_vector[neighbor_id]) ** 2))
+                        ((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
             else:
-                k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[agent_idx] - fiedler_vector[neighbor_id]) ** 2))
+                k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
 
             # Accumulate control contributions
             if agent.type == 2:

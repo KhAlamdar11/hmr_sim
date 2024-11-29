@@ -10,12 +10,7 @@ hmr_sim/controllers/__init__.py
 hmr_sim/controllers/bug0.py
 hmr_sim/controllers/frontier_explore.py
 hmr_sim/controllers/rrt.py
-hmr_sim/envs/homo/__init__.py
-hmr_sim/envs/homo/base.py
-hmr_sim/envs/homo/homo_v0.py
 hmr_sim/tests/__init__.py
-hmr_sim/tests/from gymnasium.py
-hmr_sim/tests/homo/test_homo.py
 hmr_sim/tests/utils/keyboard_controller.py
 hmr_sim/utils/__init__.py
 hmr_sim/utils/agent.py

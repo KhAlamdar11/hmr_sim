@@ -2,7 +2,7 @@ import numpy as np
 from hmr_sim.utils.connectivity_controller import ConnectivityController
 import math
 from collections import defaultdict, deque
-
+from copy import deepcopy
 
 class Agent:
     '''Represents a single independent.'''
@@ -18,8 +18,12 @@ class Agent:
         self.path_idx = 0
         self.path_len = 0
         self.type = type
-        self.neighbors = None        
-        
+        self.neighbors = None   
+
+        self.n_agents = None 
+        self.prev_n_agents = None    
+        self.problem = False
+
         #________________________  controller  ________________________
         self.controller_type = controller_type
 
@@ -57,16 +61,15 @@ class Agent:
         """
 
         if self.controller_type == 'connectivity_controller':
-            A, neighbor_ids = self.compute_adjacency()
+            
+            A, id_to_index = self.compute_adjacency()
+
             v = self.controller(self.agent_id,
                                 self.get_pos(),
                                 self.neighbors,
-                                A)
-            # print('----------------')
-            # print(self.speed)
-            # print(self.dt)
-            # print(v)
-            # Compute proposed position
+                                A,
+                                id_to_index)
+
             proposed_position = self.state[:2] + self.speed * v * self.dt
 
             # Adjust position using obstacle avoidance
@@ -79,6 +82,8 @@ class Agent:
         elif self.controller_type == 'path_tracker' and self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
             self.path_idx += 1
+
+
         elif self.controller_type == 'go_to_goal' and self.path is not None:
             if self.path_idx < self.path_len:
                 displacement = self.path[self.path_idx] - self.state[:2]
@@ -88,12 +93,25 @@ class Agent:
                     self.state[:2] = self.path[self.path_idx]
                     self.path_idx+=1
 
+            self.prev_n_agents = deepcopy(self.n_agents)
+
+            _, self.n_agents = self.compute_adjacency()
+            self.n_agents = len(self.n_agents.keys())
+
+            if not(self.problem):
+                if self.prev_n_agents is not None and self.n_agents is not None:
+                    if self.n_agents < self.prev_n_agents - 1:
+                        self.path = self.path[:self.path_idx]
+                        self.path = self.path[::-1]
+                        self.path_idx = 0
+                        self.problem = True
+
+
     def get_data(self):
         return {"id": self.agent_id, "position": self.state[:2]}
     
     
     def compute_adjacency(self):
-
         # Adjacency representation (dynamic growing dictionary)
         adjacency = defaultdict(set)
 
@@ -135,16 +153,11 @@ class Agent:
                 i, j = id_to_index[agent_id], id_to_index[neighbor_id]
                 matrix[i][j] = 1
 
-        return np.array(matrix), all_ids
+        return np.array(matrix), id_to_index
 
 
     def get_id(self):
         return self.agent_id
-
-
-    def follow_path(self):
-        '''Makes the agent follow the path waypoint by waypoint.'''
-        pass
 
 
     def set_neighbors(self,neighbors):
@@ -175,7 +188,7 @@ class Agent:
     def get_pos(self):
         return self.state[:2]
     
-    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=16,sensor_radius=0.25):
+    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4,sensor_radius=0.5):
         """
         Adjust the proposed position to avoid collisions using free path sampling.
 
