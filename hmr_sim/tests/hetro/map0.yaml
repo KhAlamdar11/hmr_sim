@@ -61,7 +61,7 @@ init_formation:
 robot_speed:
   0: 2.0
   1: 0.01
-  2: 0.01
+  2: 0.03
 
 # Visibility radius of each agent
 vis_radius: 2.5
@@ -72,8 +72,8 @@ dt: 0.1
 # ___________________ Controller Parameters ___________________
 # Parameters for the connectivity_controller
 controller_params:
-  delta: 0.2  # Step size for connectivity controller
-  repelThreshold: 0.6  # Threshold distance for repulsion
+  delta: 0.2  # Variance control for connectivity controller
+  repelThreshold: 0.6  # Threshold ratio for repulsion
   battery_aware: 0  # Whether the controller is battery aware (0: No, 1: Yes)
   normalized: 0  # Whether the values are normalized (0: No, 1: Yes)
   epsilon: 0.01  # Small constant for stability
@@ -83,3 +83,4 @@ controller_params:
   v_max: 0.3  # Maximum velocity of the agents
   critical_battery_level: 0.14  # Threshold for critical battery level
   tau: 0.01  # Time constant for controller
+  obs_radius: 0.75  # Sensor radius for obstacle avoidance 

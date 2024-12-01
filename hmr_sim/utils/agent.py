@@ -24,6 +24,8 @@ class Agent:
         self.prev_n_agents = None    
         self.problem = False
 
+        self.obstacle_radius = controller_params['obs_radius']
+
         #________________________  controller  ________________________
         self.controller_type = controller_type
 
@@ -188,13 +190,13 @@ class Agent:
     def get_pos(self):
         return self.state[:2]
     
-    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4,sensor_radius=0.5):
+    def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4):
         """
         Adjust the proposed position to avoid collisions using free path sampling.
 
         Parameters:
         proposed_position (np.ndarray): The next position proposed by the controller.
-        sensor_radius (float): The radius within which the agent checks for obstacles.
+        obstacle_radius (float): The radius within which the agent checks for obstacles.
         is_free_path_fn (function): Function to check if the path between two points is free of obstacles.
         num_samples (int): Number of directions to sample around the agent.
 
@@ -206,7 +208,7 @@ class Agent:
         magnitude = np.linalg.norm(direction_to_target)
         direction_to_target /= np.linalg.norm(direction_to_target)  # Normalize
 
-        check_point = current_position + direction_to_target * sensor_radius
+        check_point = current_position + direction_to_target * self.obstacle_radius
 
         # print(direction_to_target)
         # print(check_point)
@@ -228,8 +230,8 @@ class Agent:
         for angle in angles:
             # Generate a candidate direction
             candidate_direction = np.array([
-                np.cos(angle) * sensor_radius,
-                np.sin(angle) * sensor_radius
+                np.cos(angle) * self.obstacle_radius,
+                np.sin(angle) * self.obstacle_radius
             ])
             candidate_position = current_position + candidate_direction
 

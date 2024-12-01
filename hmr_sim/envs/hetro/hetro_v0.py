@@ -35,10 +35,6 @@ class HetroV0(BaseEnv):
             print(f"Using initialization formation: {self.init_formation}")
             self.positions = []
             for i in self.init_formation.keys():
-                print('----------')
-                print(i)
-                print(self.init_formation[i])
-                print(self.num_agents[i])
                 self.positions.append(get_curve(self.init_formation[i], self.num_agents[i]))   
             self.init_positions = np.vstack(self.positions)
         else:

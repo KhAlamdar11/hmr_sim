@@ -64,21 +64,29 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 
 ## TODOs
 
-### Homo
-- [ ] Raise error if formation is initialized within any obstacle
-- [ ] Integrate path tracking
 
 ### Hetro
+- [ ] Raise error if formation is initialized within any obstacle
 - [x] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
 - [ ] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
 - [ ] Create UML of everything!!!
-- [ ] Add options for diff controllers!
+- [x] Add options for diff controllers!
 - [x] Make connectivity controller distributed!
 - [ ] Fix path speed bug
 
-- [ ] Add local obstacle avoidance
+- [x] Add local obstacle avoidance
 
 
-## References
+## Bugs
 
-past path
+
+- [ ] Error: Possibly when agents enter the obstacle.
+
+    adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
+  File "/home/anton-superior/hmr_sim/hmr_sim/utils/agent.py", line 217, in obstacle_avoidance
+    if is_free_path_fn(current_position, check_point):
+  File "/home/anton-superior/hmr_sim/hmr_sim/envs/hetro/base.py", line 74, in is_line_of_sight_free
+    end = position_to_grid(position2)
+  File "/home/anton-superior/hmr_sim/hmr_sim/envs/hetro/base.py", line 69, in position_to_grid
+    grid_x = int((position[0] - self.origin['x']) / self.resolution)
+ValueError: cannot convert float NaN to integer
