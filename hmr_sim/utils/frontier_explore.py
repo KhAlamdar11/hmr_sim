@@ -57,11 +57,11 @@ class FrontierDetector:
 
         return candidate_points, labelled_frontiers
 
-    def nearest_frontier(self, candidate_points, state):
+    def nearest_frontier(self, candidate_points):
         # Implementation remains the same
         distances = []
         for point in candidate_points:
-            distance = self.pose_to_grid_distance(point, state)
+            distance = self.pose_to_grid_distance(point, self.current_pose[:2])
             distances.append(distance)
 
         sorted_points = [point for _, point in sorted(zip(distances, candidate_points))]

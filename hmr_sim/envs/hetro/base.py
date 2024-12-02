@@ -5,6 +5,9 @@ from pathlib import Path
 import cv2
 import yaml
 
+from hmr_sim.controllers.frontier_explore import FrontierDetector
+
+from math import sin, cos
 
 class BaseEnv(gym.Env):
 
@@ -19,6 +22,11 @@ class BaseEnv(gym.Env):
 
         self.fig = None
 
+        # exploration map variables
+        self.exploration_map = None
+        self.frontier_detector = None
+
+        # map setup
         self.map_name = config.get('map_name')
         PACKAGE_ROOT = Path(__file__).resolve().parents[2]
         self.maps_folder = PACKAGE_ROOT / "maps" / self.map_name
@@ -26,6 +34,11 @@ class BaseEnv(gym.Env):
         self.yaml_path = self.maps_folder / "data.yaml"
         self.occupancy_grid = self.load_occupancy_grid(str(self.image_path))
         self.origin, self.resolution = self.load_yaml_config(str(self.yaml_path))
+
+
+        self.exploration_map = np.full_like(self.occupancy_grid, -1)
+        self.frontier_detector = FrontierDetector(self.exploration_map, self.resolution, 
+                                                   [self.origin['x'], self.origin['y']], robot_size=0.5)
 
 
     def load_yaml_config(self, yaml_path):
@@ -128,3 +141,35 @@ class BaseEnv(gym.Env):
 
     def controller(self):
         self.swarm.run_controllers()
+
+    def update_exploration_map(self, state, local_obs, n_angles, sensor):
+        current_x, current_y = state
+        for i in range(n_angles):
+            angle = i * (2 * np.pi / n_angles)
+            found_obstacle = False
+            if local_obs[i] < sensor:
+                for r in np.linspace(0, local_obs[i], int(local_obs[i] / self.resolution)):
+                    x = current_x + r * cos(angle)
+                    y = current_y + r * sin(angle)
+                    grid_x, grid_y = self.position_to_grid((x, y))
+                    if 0 <= grid_x < self.exploration_map.shape[1] and 0 <= grid_y < self.exploration_map.shape[0]:
+                        if not self.is_free_space((x, y)):
+                            self.exploration_map[grid_y, grid_x] = 1
+                            found_obstacle = True
+                            break
+                        else:
+                            self.exploration_map[grid_y, grid_x] = 0
+
+
+    def get_frontier_goal(self, state):
+        self.frontier_detector.set_map(self.exploration_map)
+        frontier_map = self.frontier_detector.detect_frontiers()
+        candidate_points, labelled_frontiers = self.frontier_detector.label_frontiers(frontier_map)
+        ordered_points = self.frontier_detector.nearest_frontier(candidate_points, state)
+
+        if len(ordered_points) > 0:
+            goal = np.array(ordered_points[0])
+        else:
+            print("NO GOAL FOUND")
+
+        return goal

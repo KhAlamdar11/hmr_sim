@@ -39,8 +39,6 @@ class ConnectivityController:
         ndarray: Control input for the agent.
         """
 
-        print("A ", A)
-
         if A.size == 0:
             return np.array([0,0])
 

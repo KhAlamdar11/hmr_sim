@@ -4,6 +4,7 @@
 [![Gymnasium](https://gymnasium.farama.org/assets/images/logo-dark.svg)](https://github.com/Farama-Foundation/Gymnasium)
 
 
+sending frontier detector function to swarm and then to the robot itself! 
 
 
 This package provides a hmr_sim simulator built with Gymnasium for testing and developing multi-agent system algorithms. 
@@ -90,3 +91,7 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
   File "/home/anton-superior/hmr_sim/hmr_sim/envs/hetro/base.py", line 69, in position_to_grid
     grid_x = int((position[0] - self.origin['x']) / self.resolution)
 ValueError: cannot convert float NaN to integer
+
+- [ ] GOAL MUST BE SET FOR EXPLORATION!!!!!!
+- [ ] RRT KNOWS THE WHOLE MAP!
+- [ ] 

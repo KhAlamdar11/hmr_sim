@@ -8,7 +8,7 @@ from hmr_sim.envs.hetro.base import BaseEnv
 
 from hmr_sim.utils.swarm import Swarm
 from hmr_sim.utils.utils import get_curve
-from hmr_sim.utils.vis import render_homo
+from hmr_sim.utils.vis import render_homo, render_exp
 from hmr_sim.utils.rrt import RRT
 
 np.random.seed(12)
@@ -19,6 +19,8 @@ class HetroV0(BaseEnv):
         super().__init__(config)
 
         self.num_agents = config.get('num_agents', [])
+
+        self.render_type = config.get('render')
 
         self.total_agents = np.sum(self.num_agents)
 
@@ -49,6 +51,8 @@ class HetroV0(BaseEnv):
 
         self.goals = config.get('goals', {})
 
+        self.is_obstacle_avoidance = config.get('obstacle_avoidance', {})
+
         path_planners = [None for _ in range(self.total_agents)]
         if self.goals:
             for id in self.goals.keys():
@@ -64,8 +68,14 @@ class HetroV0(BaseEnv):
             vis_radius=self.vis_radius,
             agent_types = self.agent_types,
             path_planners = path_planners,
-            is_line_of_sight_free_fn=self.is_line_of_sight_free, 
-            config = config 
+            config = config,
+            map_resolution=self.resolution,
+            is_obstacle_avoidance=self.is_obstacle_avoidance,
+            map_handlers={'update_exploration_map': self.update_exploration_map,
+                          'is_free_space': self.is_free_space,
+                          'is_line_of_sight_free': self.is_line_of_sight_free,
+                          'get_frontier_goal': self.get_frontier_goal
+                          }
         )
 
         # Paths
@@ -80,7 +90,10 @@ class HetroV0(BaseEnv):
         
 
     def render(self, mode='human'):
-        render_homo(self)
+        if self.render_type == 'explore':
+            render_exp(self)
+        else:
+            render_homo(self)
 
 
     def parse_config_entry(self, entry, entry_name, type='none'):

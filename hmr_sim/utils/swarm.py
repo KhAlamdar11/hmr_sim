@@ -8,10 +8,10 @@ from hmr_sim.utils.utils import get_curve
 class Swarm:
     """Manages a swarm of heterogeneous agents."""
 
-    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, agent_types, path_planners, is_line_of_sight_free_fn, config):
+    def __init__(self, num_agents, init_positions, speed, dt, vis_radius, agent_types, 
+                 path_planners, config, map_resolution, is_obstacle_avoidance, map_handlers):
         
         self.action_dim = 2  # Assuming 2D action space
-        self.is_line_of_sight_free_fn = is_line_of_sight_free_fn
 
         self.vis_radius = vis_radius
 
@@ -21,7 +21,6 @@ class Swarm:
 
         #________________________  controller  ________________________
         controller_params = config.get('controller_params')
-        print("delta ",controller_params['delta'])
         sigma = math.sqrt(-self.vis_radius/(2*math.log(controller_params['delta'])))
         controller_params['sigma'] = sigma
         controller_params['range'] = self.vis_radius
@@ -32,8 +31,13 @@ class Swarm:
 
         self.types = np.repeat(np.arange(len(num_agents)),num_agents)
 
-        # print(speed[self.types[0]])
+        #________________________  map handlers  ________________________
+        self.is_line_of_sight_free_fn = map_handlers['is_line_of_sight_free']
+        self.is_free_space_fn = map_handlers['is_free_space']
+        self.update_exploration_map_fn = map_handlers['update_exploration_map']
+        self.get_frontier_goal_fn = map_handlers['get_frontier_goal']
 
+        #________________________  instance definitions  ________________________
         self.agents = [
             Agent(agent_id = i, 
                   init_pos = init_positions[i], 
@@ -43,7 +47,9 @@ class Swarm:
                   type = self.types[i],
                   controller_type = agent_types[self.types[i]],
                   path_planner = path_planners[i],
-                  controller_params = controller_params)
+                  controller_params = controller_params,
+                  map_resolution=map_resolution,
+                  obstacle_avoidance=is_obstacle_avoidance[self.types[i]])
             for i in range(self.total_agents)
         ]
 
@@ -60,8 +66,9 @@ class Swarm:
         return np.array([agent.state[:2] for agent in self.agents])
 
     def step(self, actions, is_free_space_fn):
-        for agent, action in zip(self.agents, actions):
-            agent.update_state(self, action, is_free_space_fn)
+        pass
+        # for agent, action in zip(self.agents, actions):
+        #     agent.update_state(self, action, is_free_space_fn)
 
 
     def compute_adjacency_matrix(self):
@@ -78,15 +85,21 @@ class Swarm:
             np.ndarray: Adjacency matrix indicating connections between agents.
         """
         positions = np.array([agent.state[:2] for agent in self.agents])
+        edge_osbtacle = np.array([agent.is_obstacle_avoidance for agent in self.agents])
         num_agents = len(self.agents)
         adjacency_matrix = np.zeros((num_agents, num_agents), dtype=int)
 
         for i in range(num_agents):
             for j in range(i + 1, num_agents):  # Check only upper triangular to avoid redundancy
                 distance = euclidean(positions[i], positions[j])
-                if distance <= self.vis_radius and self.is_line_of_sight_free_fn(positions[i], positions[j]):
-                    adjacency_matrix[i, j] = 1
-                    adjacency_matrix[j, i] = 1  # Symmetric adjacency matrix
+                if distance <= self.vis_radius:
+                    if edge_osbtacle[i] and edge_osbtacle[j]:
+                        if self.is_line_of_sight_free_fn(positions[i], positions[j]):
+                            adjacency_matrix[i, j] = 1
+                            adjacency_matrix[j, i] = 1  # Symmetric adjacency matrix
+                    else:
+                        adjacency_matrix[i, j] = 1
+                        adjacency_matrix[j, i] = 1  # Symmetric adjacency matrix
 
         return adjacency_matrix
 
@@ -104,10 +117,7 @@ class Swarm:
         for i, agent in enumerate(self.agents):
             neighbors = [self.agents[j] for j in range(len(self.agents)) if adjacency_matrix[i, j] == 1]
             agent.set_neighbors(neighbors)
-            # print("-------------------")
-            # print(agent.agent_id)
-            # print(agent.get_neighbors_pos())
-            # print("-------------------")
+
 
     def set_agent_path(self,idx,path):
         self.agents[idx].set_path(path)
