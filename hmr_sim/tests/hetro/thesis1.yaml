@@ -1,54 +1,54 @@
 # Environment Configuration
 env: Hetro-v0  # Name of the environment
-map_name: mapx  # Map name used in the environment
+map_name: map1  # Map name used in the environment
 
 # rendering mode (nav, explore)
-render: explore
+render: nav
 # Visibility radius of each agent
-vis_radius: 5.0
+vis_radius: 2.5
 # Time step for the simulation
 dt: 0.1
 
+
 agent_config:
-  0:
-    num_agents: 14    
+  0:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+    num_agents: 8    
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
     init_position: None     # Spawn agents at predefined positions (list of lists)
     init_formation:         # Spawn agents as a formation (see options in documentation)
-      shape: Circle
+      shape: Elipse
       origin: [0.0,0.0]
-      radius: 1.0
-    speed: 6.0
+      major_radius: 3.0
+    speed: 2.0
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
+    # Battery related variables
+    init_battery: [0.2,0.4,0.5,0.8,0.9,1.0,0.85,0.75]
+    battery_decay_rate: 0.01
   1:
     num_agents: 1
     controller_type: do_not_move
-    obstacle_avoidance: 1
-    init_position: None
-    init_formation:
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 0.1
-    speed: 0.01
-    paths:
-      0:
-        shape: Square
-        origin: [0.0, 0.0]
-        side: 0.1
+    obstacle_avoidance: 0
+    init_position: [[-3.5,0.0]]
+    speed: 0.8
     sensor_radius: 7.0
     obs_radius: 0.75
   2:
-    num_agents: 2
-    controller_type: explore
-    obstacle_avoidance: 1
-    init_position: None
-    init_formation:
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 0.75
-    speed: 0.1
+    num_agents: 1
+    controller_type: do_not_move
+    obstacle_avoidance: 0
+    init_position: [[3.5,0.0]]
+    # init_formation:
+    #   shape: Elipse
+    #   origin: [0.0,0.0]
+    #   major_radius: 0.5
+    speed: 0.3
+    # paths:      # Must match number of agents
+    #   0:
+    #     shape: Elipse
+    #     origin: [0.0, 0.0]
+    #     major_radius: 4.5
     sensor_radius: 7.0
     obs_radius: 0.75
 

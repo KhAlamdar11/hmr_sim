@@ -9,7 +9,6 @@ from hmr_sim.envs.hetro.base import BaseEnv
 from hmr_sim.utils.swarm import Swarm
 from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.vis import render_homo, render_exp
-from hmr_sim.utils.rrt import RRT
 
 np.random.seed(12)
 
@@ -22,65 +21,20 @@ class HetroV0(BaseEnv):
 
         self.render_type = config.get('render')
 
-        self.total_agents = np.sum(self.num_agents)
+        self.agent_config = config.get('agent_config')
 
-        #______________________  Formation Initialization  ______________________
-        # Parse initialization positions and formation from the config file
-        self.init_positions = np.array(config.get('init_positions', "[]"))
-        self.init_formation = config.get('init_formation', "{}")
+        self.vis_radius = config.get('vis_radius')
 
-        # Initialize agents based on available configuration
-        if self.init_positions.any() and len(self.init_positions) > 0:
-            print("Using custom initialization positions.")
-            self.agents_positions = self.init_positions
-        elif self.init_formation:
-            print(f"Using initialization formation: {self.init_formation}")
-            self.positions = []
-            for i in self.init_formation.keys():
-                self.positions.append(get_curve(self.init_formation[i], self.num_agents[i]))   
-            self.init_positions = np.vstack(self.positions)
-        else:
-            raise ValueError("No valid initialization configuration provided.")
-        #___________________________________________________________________________       
+        self.total_agents = sum(inner_dict["num_agents"] for inner_dict in self.agent_config.values())
 
-        self.speed = config.get('robot_speed', {})
+        self.swarm = Swarm(env=self,
+                           config = config,
+                           map_resolution=self.resolution,
+                           map_handlers={'update_exploration_map': self.update_exploration_map,
+                                        'is_free_space': self.is_free_space,
+                                        'is_line_of_sight_free': self.is_line_of_sight_free,
+                                        'get_frontier_goal': self.get_frontier_goal})
 
-        self.vis_radius = config.get('vis_radius', 5.0)  # Returns float
-
-        self.agent_types = config.get('agent_types', "{}")
-
-        self.goals = config.get('goals', {})
-
-        self.is_obstacle_avoidance = config.get('obstacle_avoidance', {})
-
-        path_planners = [None for _ in range(self.total_agents)]
-        if self.goals:
-            for id in self.goals.keys():
-                # print(id)
-                path_planners[id] = RRT(self)
-                path_planners[id].set_goal(self.goals[id])
-
-        self.swarm = Swarm(
-            num_agents=self.num_agents,
-            init_positions=self.init_positions,
-            speed=self.speed,
-            dt=self.dt,
-            vis_radius=self.vis_radius,
-            agent_types = self.agent_types,
-            path_planners = path_planners,
-            config = config,
-            map_resolution=self.resolution,
-            is_obstacle_avoidance=self.is_obstacle_avoidance,
-            map_handlers={'update_exploration_map': self.update_exploration_map,
-                          'is_free_space': self.is_free_space,
-                          'is_line_of_sight_free': self.is_line_of_sight_free,
-                          'get_frontier_goal': self.get_frontier_goal
-                          }
-        )
-
-        # Paths
-        self.paths = config.get('paths', {})
-        self.swarm.set_all_paths(self.paths)            
         
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)

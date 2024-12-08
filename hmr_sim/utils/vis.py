@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import numpy as np
+import matplotlib.colors as mcolors
 
 def render_homo(self):
     """
@@ -39,20 +40,34 @@ def render_homo(self):
         self.agent_markers = []
         self.sensor_circles = []
 
-        for agent in self.swarm.agents:
-            # Plot agent marker
+        # Define a dictionary to map agent types to their base colormaps and markers
+        type_styles = {
+            0: {'cmap': 'Blues', 'marker': 'o'},     # Type 0: Blue colormap, circle
+            1: {'cmap': 'Reds', 'marker': '^'},     # Type 1: Red colormap, triangle
+            2: {'cmap': 'YlOrBr', 'marker': 's'}    # Type 2: Yellow colormap, square
+        }
 
-            if agent.type == 0:
-                marker, = self.ax.plot(agent.state[0], agent.state[1], 'o', 
-                                        mfc='blue', mec='black', markersize=11, zorder=3)
-            elif agent.type == 1:
-                marker, = self.ax.plot(agent.state[0], agent.state[1], '^', 
-                                        mfc='red', mec='black', markersize=11, zorder=3)
-            elif agent.type == 2:
-                marker, = self.ax.plot(agent.state[0], agent.state[1], 's', 
-                                        mfc='yellow', mec='black', markersize=11, zorder=3)
-        
-            self.agent_markers.append(marker)
+        for agent in self.swarm.agents:
+            # Get style for the current agent type
+            style = type_styles.get(agent.type, {'cmap': 'Greys', 'marker': 'o'})  # Default: Gray circle
+
+            # Handle battery levels
+            if agent.battery is None:
+                color = mcolors.to_rgb(style['cmap'])  # Use base color directly if battery is None
+            else:
+                cmap = plt.cm.get_cmap(style['cmap'])
+                color = cmap(agent.battery)  # Map battery level to colormap
+
+            # Use scatter to plot and add marker to the list
+            scatter_marker = self.ax.scatter(
+                agent.state[0], agent.state[1],
+                color=color, edgecolor='black', s=210, zorder=3,
+                marker=style['marker']
+            )
+
+            # Append the scatter marker to the agent_markers list
+            self.agent_markers.append(scatter_marker)
+
 
             # Add sensory radius circle
             # sensor_circle = Circle((agent.state[0], agent.state[1]), agent.vis_radius, 
@@ -72,8 +87,8 @@ def render_homo(self):
     else:
         # Update agent markers and sensory circles
         for i, agent in enumerate(self.swarm.agents):
-            self.agent_markers[i].set_xdata(agent.state[0])
-            self.agent_markers[i].set_ydata(agent.state[1])
+            # Update the position of the marker in the PathCollection
+            self.agent_markers[i].set_offsets([agent.state[0], agent.state[1]])
             # self.sensor_circles[i].center = (agent.state[0], agent.state[1])
 
         # Clear previous adjacency lines

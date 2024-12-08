@@ -7,44 +7,58 @@ from copy import deepcopy
 class Agent:
     '''Represents a single independent.'''
     
-    def __init__(self, agent_id, init_pos, speed, dt, vis_radius, 
-                 type, controller_type, path_planner, 
-                 controller_params, map_resolution, obstacle_avoidance):
+    def __init__(self, type, agent_id, init_position,
+                 dt, vis_radius, map_resolution, 
+                 config, controller_params, path_planner=None,
+                 path = None, goal = None, init_battery = None, 
+                 battery_decay_rate = None):
         
+        print(f"Type: {type}, ID: {agent_id}, controller type: {config['controller_type']}")
+
+        # Base params
+        self.type = type
         self.agent_id = agent_id
-        self.state = np.zeros(4)
-        self.state[:2] = init_pos
-        self.speed = speed
         self.dt = dt
         self.vis_radius = vis_radius
+        self.map_resolution = map_resolution
+
+        # Config params
+        self.obstacle_avoidance = config['obstacle_avoidance']
+        self.speed = config['speed']
+        self.sensor_radius = config['sensor_radius']
+        self.obstacle_radius = config['obs_radius']
+
+        # Agent vars
+        self.state = np.zeros(4)
+        self.state[:2] = init_position
         self.path = None
         self.path_idx = 0
         self.path_len = 0
-        self.type = type
         self.neighbors = None   
 
-        self.is_obstacle_avoidance = obstacle_avoidance
+        # Battery Variables
+        self.battery = init_battery 
+        self.battery_decay_rate = init_battery
 
+        # Corner case handles
         self.n_agents = None 
         self.prev_n_agents = None    
         self.problem = False
 
-        self.map_resolution = map_resolution
-
-        self.obstacle_radius = controller_params['obs_radius']
-        self.sensor_radius = controller_params['sensor_radius']
-
-        #________________________  controller  ________________________
-        self.controller_type = controller_type
+        # #________________________  controller  ________________________
+        self.controller_type = config['controller_type']
 
         if self.controller_type == 'connectivity_controller':
             self.controller = ConnectivityController(params=controller_params)
-        elif self.controller_type == 'go_to_goal' and path_planner is not None:
+        elif self.controller_type == 'go_to_goal':
             print("planning path")
             self.controller = path_planner
+            self.controller.set_goal(goal)
             self.set_path(path_planner.plan_path(self.state[:2]))
         elif self.controller_type == 'explore':
             self.controller = path_planner
+        elif self.controller_type == 'path_tracker':
+            self.set_path(path)
 
 
     # def update_state(self, swarm, action, is_free_space_fn):
@@ -84,21 +98,14 @@ class Agent:
 
             proposed_position = self.state[:2] + self.speed * v * self.dt
 
-            print("Prop", proposed_position)
-
             # Adjust position using obstacle avoidance
-            print("OBS", self.is_obstacle_avoidance)
-            if self.is_obstacle_avoidance:
-                print("YES")
+            if self.obstacle_avoidance:
                 adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
                                                             is_free_path_fn=swarm.is_line_of_sight_free_fn)
                 # Update state with the adjusted position
                 self.state[:2] = adjusted_position
             else:
-                print("NO")
                 self.state[:2] = proposed_position
-
-            print("state", self.state[:2])
 
         
         elif self.controller_type == 'path_tracker' and self.path is not None:
@@ -114,18 +121,18 @@ class Agent:
                     self.state[:2] = self.path[self.path_idx]
                     self.path_idx+=1
 
-            self.prev_n_agents = deepcopy(self.n_agents)
+            # self.prev_n_agents = deepcopy(self.n_agents)
 
-            _, self.n_agents = self.compute_adjacency()
-            self.n_agents = len(self.n_agents.keys())
+            # _, self.n_agents = self.compute_adjacency()
+            # self.n_agents = len(self.n_agents.keys())
 
-            if not(self.problem):
-                if self.prev_n_agents is not None and self.n_agents is not None:
-                    if self.n_agents < self.prev_n_agents - 1:
-                        self.path = self.path[:self.path_idx]
-                        self.path = self.path[::-1]
-                        self.path_idx = 0
-                        self.problem = True
+            # if not(self.problem):
+            #     if self.prev_n_agents is not None and self.n_agents is not None:
+            #         if self.n_agents < self.prev_n_agents - 1:
+            #             self.path = self.path[:self.path_idx]
+            #             self.path = self.path[::-1]
+            #             self.path_idx = 0
+            #             self.problem = True
 
         elif self.controller_type == 'explore':
             local_obs,n_angles = self.get_local_observation(swarm.is_free_space_fn)
@@ -149,6 +156,8 @@ class Agent:
                 self.path = None
         elif self.controller_type == 'dummy':
             self.state[0] += 1*self.speed
+        elif self.controller_type == 'do_not_move':
+            pass
 
 
 

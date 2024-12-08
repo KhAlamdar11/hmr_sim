@@ -32,7 +32,7 @@ def run(args):
         # try:
         if t > 30:
             env.unwrapped.controller()
-        obs, reward, terminated, truncated, info = env.step(None)
+        # obs, reward, terminated, truncated, info = env.step(None)
         # done = terminated or truncated
         # except:
         #     pass

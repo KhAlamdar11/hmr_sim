@@ -116,10 +116,10 @@ class BaseEnv(gym.Env):
 
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
-        for i, agent in enumerate(self.swarm.agents):
-            if agent.path is None:
-                agent.state[:2] = self.init_positions[i]
-                agent.state[2:] = 0
+        # for i, agent in enumerate(self.swarm.agents):
+        #     if agent.path is None:
+        #         agent.state[:2] = self.init_positions[i]
+        #         agent.state[2:] = 0
         return self.swarm.get_states(), {}
 
     def step(self, actions=None):
