@@ -64,9 +64,10 @@ class Swarm:
                                                speed=self.agent_config[agent_type]['speed'],
                                                dt=self.dt))
                         
-                # baterries
-                init_battery = self.agent_config.get(agent_type).get('init_battery', None)
-                battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
+            # baterries
+            init_battery = self.agent_config.get(agent_type).get('init_battery', None)
+            battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
+            battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
 
             for n in range(self.agent_config[agent_type]['num_agents']):
                 self.agents.append(Agent(type = agent_type,
@@ -80,8 +81,10 @@ class Swarm:
                                         path_planner = path_planner,
                                         path = paths[n] if paths!=[] else [],
                                         goal = goals[n] if goals is not None else None,
-                                        init_battery = init_battery[n] if init_battery is not None else None,
-                                        battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None))
+                                        init_battery = init_battery[n] if init_battery is not None else 0.5,
+                                        battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
+                                        battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
+                                        show_old_path = env.show_old_path))
                
 
     def get_states(self):
@@ -157,8 +160,14 @@ class Swarm:
 
     def run_controllers(self):
         self.update_neighbors()
-        for agent in self.agents:
+
+        for agent in self.agents[:]:  # Create a shallow copy for iteration
             agent.run_controller(self)
-            # Update battery
-            # if battery < battery_threshold:
-            #     self.remove_agent()
+            
+            # Check battery and remove agent if it falls below the threshold
+            if agent.is_battery_critical(): 
+                self.remove_agent(agent)  # Call the method to remove the agent
+
+    def remove_agent(self, agent):
+        self.agents.remove(agent)
+        print(f"Agent {agent.agent_id} removed due to low battery.")

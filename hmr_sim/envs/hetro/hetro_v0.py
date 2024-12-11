@@ -8,7 +8,7 @@ from hmr_sim.envs.hetro.base import BaseEnv
 
 from hmr_sim.utils.swarm import Swarm
 from hmr_sim.utils.utils import get_curve
-from hmr_sim.utils.vis import render_homo, render_exp
+from hmr_sim.utils.vis import SwarmRenderer, render_exp
 
 np.random.seed(12)
 
@@ -19,13 +19,15 @@ class HetroV0(BaseEnv):
 
         self.num_agents = config.get('num_agents', [])
 
-        self.render_type = config.get('render')
-
         self.agent_config = config.get('agent_config')
 
         self.vis_radius = config.get('vis_radius')
 
         self.total_agents = sum(inner_dict["num_agents"] for inner_dict in self.agent_config.values())
+
+        self.render_type = config.get('vis_params')['render_type']
+        self.show_old_path = config.get('vis_params')['show_old_path']
+
 
         self.swarm = Swarm(env=self,
                            config = config,
@@ -35,6 +37,10 @@ class HetroV0(BaseEnv):
                                         'is_line_of_sight_free': self.is_line_of_sight_free,
                                         'get_frontier_goal': self.get_frontier_goal})
 
+        self.render_func = SwarmRenderer(swarm=self.swarm, occupancy_grid=self.occupancy_grid, 
+                                    origin=self.origin, resolution=self.resolution, 
+                                    vis_radius=self.vis_radius)
+        
         
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)
@@ -47,7 +53,7 @@ class HetroV0(BaseEnv):
         if self.render_type == 'explore':
             render_exp(self)
         else:
-            render_homo(self)
+            self.render_func.render()
 
 
     def parse_config_entry(self, entry, entry_name, type='none'):

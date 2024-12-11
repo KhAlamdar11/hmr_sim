@@ -3,130 +3,131 @@ from matplotlib.patches import Circle
 import numpy as np
 import matplotlib.colors as mcolors
 
-def render_homo(self):
-    """
-    Render the environment with a multi-agent swarm.
-    All agents will have the same marker and sensory circle color.
-    
-    Parameters:
-        communication_radius (float, optional): If provided, draws lines connecting agents within this radius.
-    """
-    if self.fig is None:
-        # Initialize figure and axis
+
+class SwarmRenderer:
+    def __init__(self, swarm, occupancy_grid, origin, resolution, vis_radius=None):
+        self.swarm = swarm
+        self.occupancy_grid = occupancy_grid
+        self.origin = origin
+        self.resolution = resolution
+        self.vis_radius = vis_radius
+        self.fig = None
+        self.ax = None
+        self.agent_markers = []  # Stores matplotlib Line2D objects (not scatter)
+        self.sensor_circles = []
+        self.paths = []  # List to store agent paths
+        self.old_paths = []  # List to store old agent paths
+        self.adjacency_lines = []
+        self.type_styles = {
+            0: {'cmap': 'Blues', 'marker': 'o'},
+            1: {'cmap': 'Reds', 'marker': '^'},
+            2: {'cmap': 'YlOrBr', 'marker': 's'}
+        }
+
+    def initialize(self):
         plt.ion()
         self.fig = plt.figure(figsize=(10, 10))
         self.ax = self.fig.add_subplot(111)
 
-        # Calculate the extent based on the map configuration
         extent = (
             self.origin['x'],
             self.origin['x'] + self.occupancy_grid.shape[1] * self.resolution,
             self.origin['y'],
             self.origin['y'] + self.occupancy_grid.shape[0] * self.resolution,
         )
-
-        # Display the occupancy grid as background
         self.ax.imshow(1.0 - self.occupancy_grid, cmap='gray', origin='lower', extent=extent, zorder=0)
-
-        # Customize the axis for clean visualization
         self.ax.set_xticks([])
         self.ax.set_yticks([])
-        self.ax.spines['top'].set_visible(False)
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['left'].set_visible(False)
-        self.ax.spines['bottom'].set_visible(False)
-
-        # Initialize agent markers and sensory circles
-        self.agent_markers = []
-        self.sensor_circles = []
-
-        # Define a dictionary to map agent types to their base colormaps and markers
-        type_styles = {
-            0: {'cmap': 'Blues', 'marker': 'o'},     # Type 0: Blue colormap, circle
-            1: {'cmap': 'Reds', 'marker': '^'},     # Type 1: Red colormap, triangle
-            2: {'cmap': 'YlOrBr', 'marker': 's'}    # Type 2: Yellow colormap, square
-        }
-
-        for agent in self.swarm.agents:
-            # Get style for the current agent type
-            style = type_styles.get(agent.type, {'cmap': 'Greys', 'marker': 'o'})  # Default: Gray circle
-
-            # Handle battery levels
-            if agent.battery is None:
-                color = mcolors.to_rgb(style['cmap'])  # Use base color directly if battery is None
-            else:
-                cmap = plt.cm.get_cmap(style['cmap'])
-                color = cmap(agent.battery)  # Map battery level to colormap
-
-            # Use scatter to plot and add marker to the list
-            scatter_marker = self.ax.scatter(
-                agent.state[0], agent.state[1],
-                color=color, edgecolor='black', s=210, zorder=3,
-                marker=style['marker']
-            )
-
-            # Append the scatter marker to the agent_markers list
-            self.agent_markers.append(scatter_marker)
-
-
-            # Add sensory radius circle
-            # sensor_circle = Circle((agent.state[0], agent.state[1]), agent.vis_radius, 
-            #                         edgecolor='yellow', facecolor='yellow', linewidth=2.3, alpha=0.03, zorder=3)
-            # self.ax.add_patch(sensor_circle)
-            # self.sensor_circles.append(sensor_circle)
-
-        # Automatically set plot limits based on the occupancy grid extent
+        self.ax.axis('off')
         self.ax.set_xlim(extent[0], extent[1])
         self.ax.set_ylim(extent[2], extent[3])
         self.ax.set_aspect('equal', 'box')
 
-        # Store handles for paths and adjacency lines
-        self.paths = [[] for _ in self.swarm.agents]
-        self.adjacency_lines = []
+        # Initialize paths and old paths
+        self.paths = [None] * len(self.swarm.agents)
+        self.old_paths = [None] * len(self.swarm.agents)
 
-    else:
-        # Update agent markers and sensory circles
+    def update_markers(self):
+        while len(self.agent_markers) < len(self.swarm.agents):
+            self.agent_markers.append(None)
+            self.paths.append(None)
+            self.old_paths.append(None)
+
         for i, agent in enumerate(self.swarm.agents):
-            # Update the position of the marker in the PathCollection
-            self.agent_markers[i].set_offsets([agent.state[0], agent.state[1]])
-            # self.sensor_circles[i].center = (agent.state[0], agent.state[1])
+            style = self.type_styles.get(agent.type, {'cmap': 'Greys', 'marker': 'o'})
+            cmap = plt.cm.get_cmap(style['cmap'])
+            color = cmap(agent.battery) if agent.battery is not None else mcolors.to_rgb(style['cmap'])
 
-        # Clear previous adjacency lines
+            if self.agent_markers[i] is None:
+                marker, = self.ax.plot(
+                    [agent.state[0]], [agent.state[1]], style['marker'],
+                    mfc=color, mec='black', markersize=13, zorder=3
+                )
+                self.agent_markers[i] = marker
+            else:
+                self.agent_markers[i].set_xdata(agent.state[0])
+                self.agent_markers[i].set_ydata(agent.state[1])
+                self.agent_markers[i].set_markerfacecolor(color)
+
+    def update_adjacency_lines(self):
         for line in self.adjacency_lines:
             line.remove()
         self.adjacency_lines.clear()
-
-    # Draw adjacency lines if communication_radius is provided
-    if self.vis_radius is not None:
         adjacency_matrix = self.swarm.compute_adjacency_matrix()
         positions = [agent.state[:2] for agent in self.swarm.agents]
 
         for i, pos_i in enumerate(positions):
             for j, pos_j in enumerate(positions):
                 if adjacency_matrix[i, j]:
-                    line, = self.ax.plot([pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]], 
+                    line, = self.ax.plot([pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]],
                                          'k-', zorder=1, alpha=0.1, linewidth=4)
                     self.adjacency_lines.append(line)
 
-    # Draw paths for each agent
-    for i, agent in enumerate(self.swarm.agents):
-        if agent.path is not None:
-            path_x = [p[0] for p in agent.path]
-            path_y = [p[1] for p in agent.path]
+    def update_paths(self):
+        for i, agent in enumerate(self.swarm.agents):
+            if agent.path is not None:
+                path_x = [p[0] for p in agent.path]
+                path_y = [p[1] for p in agent.path]
 
-            if self.paths[i]:
-                # Update existing path
-                self.paths[i].set_data(path_x, path_y)
-            else:
-                # Create a new path line
-                path_line, = self.ax.plot(path_x, path_y, color='green', linestyle='--', linewidth=2, alpha=0.3, zorder=2)
-                self.paths[i] = path_line
+                if self.paths[i]:
+                    self.paths[i].set_data(path_x, path_y)
+                else:
+                    path_line, = self.ax.plot(
+                        path_x, path_y, color='green', linestyle='--', linewidth=2, alpha=0.3, zorder=2
+                    )
+                    self.paths[i] = path_line
 
-    # Incremental update for the plot
-    plt.draw()
-    plt.pause(0.01) 
+    def update_old_paths(self):
+        """
+        Updates or creates lines for the old paths of each agent.
+        """
+        for i, agent in enumerate(self.swarm.agents):
+            if agent.old_path is not None and len(agent.old_path) > 1:
+                print(f"Agent ID: {agent.agent_id}, old_path: {agent.old_path}")
+                
+                # Extract x and y coordinates
+                old_path_x = [p[0] for p in agent.old_path]
+                old_path_y = [p[1] for p in agent.old_path]
 
+                if self.old_paths[i]:
+                    # Update the existing old path line
+                    self.old_paths[i].set_data(old_path_x, old_path_y)
+                else:
+                    # Create a new old path line
+                    old_path_line, = self.ax.plot(
+                        old_path_x, old_path_y, color='gray', linestyle=':', linewidth=1.5, alpha=0.5, zorder=1
+                    )
+                    self.old_paths[i] = old_path_line
 
+    def render(self):
+        if self.fig is None:
+            self.initialize()
+        self.update_markers()
+        self.update_adjacency_lines()
+        self.update_paths()
+        self.update_old_paths()  # Update old paths during each render
+        plt.draw()
+        plt.pause(0.01)
 
 
 def render_exp(self):

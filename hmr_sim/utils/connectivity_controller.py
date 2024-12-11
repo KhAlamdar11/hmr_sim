@@ -20,7 +20,6 @@ class ConnectivityController:
         params (dict): Configuration parameters for the controller.
         """
         self.params = params
-        print(params)
         self.fiedler_value = None
         self.fiedler_vector = None
         self.critical_battery_level = self.params['critical_battery_level']

@@ -11,9 +11,10 @@ class Agent:
                  dt, vis_radius, map_resolution, 
                  config, controller_params, path_planner=None,
                  path = None, goal = None, init_battery = None, 
-                 battery_decay_rate = None):
+                 battery_decay_rate = None, battery_threshold=None,
+                 show_old_path=0):
         
-        print(f"Type: {type}, ID: {agent_id}, controller type: {config['controller_type']}")
+        # print(f"Type: {type}, ID: {agent_id}, batetery type: {init_battery}")
 
         # Base params
         self.type = type
@@ -37,13 +38,17 @@ class Agent:
         self.neighbors = None   
 
         # Battery Variables
-        self.battery = init_battery 
-        self.battery_decay_rate = init_battery
+        self.battery = init_battery if init_battery is not None else 1.0
+        self.battery_decay_rate = battery_decay_rate
+        self.battery_threshold = battery_threshold
 
         # Corner case handles
         self.n_agents = None 
         self.prev_n_agents = None    
         self.problem = False
+
+        self.old_path_len = show_old_path
+        self.old_path = []
 
         # #________________________  controller  ________________________
         self.controller_type = config['controller_type']
@@ -107,6 +112,10 @@ class Agent:
             else:
                 self.state[:2] = proposed_position
 
+            
+            self.update_path_history(self.state[:2])
+
+
         
         elif self.controller_type == 'path_tracker' and self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
@@ -158,6 +167,11 @@ class Agent:
             self.state[0] += 1*self.speed
         elif self.controller_type == 'do_not_move':
             pass
+
+        if self.battery_decay_rate is not None and self.battery > 0:
+            self.battery-=self.battery_decay_rate
+
+        # print(self.old_path)
 
 
 
@@ -257,6 +271,16 @@ class Agent:
     def get_pos(self):
         return self.state[:2]
     
+    def is_battery_critical(self):
+        if self.battery <= self.battery_threshold:
+            return True
+        return False
+
+    def update_path_history(self,element):
+        if len(self.old_path) >= self.old_path_len:
+            self.old_path.pop(0)  # Remove the oldest element
+        self.old_path.append(element)  # Add the new element
+
     # def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4):
     #     """
     #     Adjust the proposed position to avoid collisions using free path sampling.

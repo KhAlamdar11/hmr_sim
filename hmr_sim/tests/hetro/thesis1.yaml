@@ -2,8 +2,6 @@
 env: Hetro-v0  # Name of the environment
 map_name: map1  # Map name used in the environment
 
-# rendering mode (nav, explore)
-render: nav
 # Visibility radius of each agent
 vis_radius: 2.5
 # Time step for the simulation
@@ -25,7 +23,8 @@ agent_config:
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
     # Battery related variables
     init_battery: [0.2,0.4,0.5,0.8,0.9,1.0,0.85,0.75]
-    battery_decay_rate: 0.01
+    battery_decay_rate: 0.00
+    battery_threshold: 0.14
   1:
     num_agents: 1
     controller_type: do_not_move
@@ -52,6 +51,10 @@ agent_config:
     sensor_radius: 7.0
     obs_radius: 0.75
 
+vis_params:
+  render_type: nav               # rendering mode (nav, explore)
+  show_old_path: 10000       # show the history of state
+
 
 # ___________________ Controller Parameters ___________________
 # Parameters for the connectivity_controller
@@ -67,3 +70,4 @@ controller_params:
   v_max: 0.3  # Maximum velocity of the agents
   critical_battery_level: 0.14  # Threshold for critical battery level
   tau: 0.01  # Time constant for controller
+

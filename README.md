@@ -67,15 +67,23 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 
 
 ### Hetro
-- [ ] Raise error if formation is initialized within any obstacle
+
+Road to gym:
+- [ ] Update battery colors (fix vis function)
+- [ ] Add method to remove agents
+- [ ] Add add agent pipeline, reuse gym functions
+
 - [x] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
-- [ ] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
+- [x] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
 - [ ] Create UML of everything!!!
 - [x] Add options for diff controllers!
 - [x] Make connectivity controller distributed!
 - [ ] Fix path speed bug
-
 - [x] Add local obstacle avoidance
+
+
+Error handling:
+- [ ] Raise error if formation is initialized within any obstacle
 
 
 ## Bugs
@@ -92,6 +100,4 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
     grid_x = int((position[0] - self.origin['x']) / self.resolution)
 ValueError: cannot convert float NaN to integer
 
-- [ ] GOAL MUST BE SET FOR EXPLORATION!!!!!!
 - [ ] RRT KNOWS THE WHOLE MAP!
-- [ ] 

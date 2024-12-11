@@ -57,6 +57,10 @@ agent_config:
     sensor_radius: 7.0
     obs_radius: 0.75
 
+vis_params:
+  render_type: nav               # rendering mode (nav, explore)
+  show_old_path: 10000       # show the history of state
+
 # ___________________ Controller Parameters ___________________
 # Parameters for the connectivity_controller
 controller_params:
