@@ -109,13 +109,16 @@ class SwarmRenderer:
                 old_path_x = [p[0] for p in agent.old_path]
                 old_path_y = [p[1] for p in agent.old_path]
 
+                print(f"old path x {old_path_x}")
+                print(f"old path y {old_path_y}")
+
                 if self.old_paths[i]:
                     # Update the existing old path line
                     self.old_paths[i].set_data(old_path_x, old_path_y)
                 else:
                     # Create a new old path line
                     old_path_line, = self.ax.plot(
-                        old_path_x, old_path_y, color='gray', linestyle=':', linewidth=1.5, alpha=0.5, zorder=1
+                        old_path_x, old_path_y, color='green', linestyle='--', linewidth=2.0, alpha=0.5, zorder=1
                     )
                     self.old_paths[i] = old_path_line
 
@@ -124,7 +127,7 @@ class SwarmRenderer:
             self.initialize()
         self.update_markers()
         self.update_adjacency_lines()
-        self.update_paths()
+        # self.update_paths()
         self.update_old_paths()  # Update old paths during each render
         plt.draw()
         plt.pause(0.01)

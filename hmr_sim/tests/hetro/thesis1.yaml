@@ -10,7 +10,7 @@ dt: 0.1
 
 agent_config:
   0:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
-    num_agents: 8    
+    num_agents: 12
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
     init_position: None     # Spawn agents at predefined positions (list of lists)
@@ -22,8 +22,8 @@ agent_config:
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
     # Battery related variables
-    init_battery: [0.2,0.4,0.5,0.8,0.9,1.0,0.85,0.75]
-    battery_decay_rate: 0.00
+    init_battery: [0.2,0.4,0.5,0.8,0.9,1.0,0.85,0.75, 0.86, 0.97, 0.67, 0.79]
+    battery_decay_rate: 0.001
     battery_threshold: 0.14
   1:
     num_agents: 1

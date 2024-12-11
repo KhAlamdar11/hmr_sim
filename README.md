@@ -48,30 +48,22 @@ cd hmr_sim/tests
 ```
 
 
-
-
-
-
 ## Usage
 
 The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These environments are responsible for setting up the simulation, maps, robots, sensory methods, and other components. Please refer to the **Environments** section for a detailed description of the available environments and maps.
 
 
-
-
 ## How to test algorithms
 
-
-
 ## TODOs
-
 
 ### Hetro
 
 Road to gym:
-- [ ] Update battery colors (fix vis function)
-- [ ] Add method to remove agents
+- [x] Update battery colors (fix vis function)
+- [x] Add method to remove agents
 - [ ] Add add agent pipeline, reuse gym functions
+
 
 - [x] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
 - [x] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
@@ -90,7 +82,7 @@ Error handling:
 
 
 - [ ] Error: Possibly when agents enter the obstacle.
-
+yellow
     adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
   File "/home/anton-superior/hmr_sim/hmr_sim/utils/agent.py", line 217, in obstacle_avoidance
     if is_free_path_fn(current_position, check_point):
@@ -101,3 +93,5 @@ Error handling:
 ValueError: cannot convert float NaN to integer
 
 - [ ] RRT KNOWS THE WHOLE MAP!
+
+- [ ] Sometimes old maps remain!

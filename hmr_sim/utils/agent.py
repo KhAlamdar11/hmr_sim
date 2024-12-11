@@ -112,8 +112,8 @@ class Agent:
             else:
                 self.state[:2] = proposed_position
 
-            
-            self.update_path_history(self.state[:2])
+            element = deepcopy(self.state[:2])        
+            self.update_path_history(element)
 
 
         
@@ -279,7 +279,16 @@ class Agent:
     def update_path_history(self,element):
         if len(self.old_path) >= self.old_path_len:
             self.old_path.pop(0)  # Remove the oldest element
-        self.old_path.append(element)  # Add the new element
+        
+        if len(self.old_path) > 0:
+            print(f"element: {element}")
+            print(f"old_path: {self.old_path[-1]}")
+            distance = np.linalg.norm(element - self.old_path[-1])
+            print(f"distance {distance}")
+            if  distance > 0.1:
+                self.old_path.append(element)  # Add the new element
+        elif len(self.old_path) == 0:
+            self.old_path.append(element)  # Add the new element
 
     # def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4):
     #     """
