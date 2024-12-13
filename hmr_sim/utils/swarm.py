@@ -4,6 +4,7 @@ from scipy.spatial.distance import euclidean
 import math
 from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.rrt import RRT
+from hmr_sim.utils.add_agents import AddAgent
 
 
 class Swarm:
@@ -11,6 +12,8 @@ class Swarm:
 
     def __init__(self, env, config, map_resolution, map_handlers):
         
+        self.env = env
+
         self.action_dim = 2  # Assuming 2D action space
 
         self.vis_radius = config.get('vis_radius')
@@ -34,13 +37,17 @@ class Swarm:
         self.update_exploration_map_fn = map_handlers['update_exploration_map']
         self.get_frontier_goal_fn = map_handlers['get_frontier_goal']
 
+
         #________________________  instance definitions  ________________________
         self.agents = []
         id_n = 0
+        goals = None
+        path_planner = None
+        paths = []
         for agent_type in self.agent_config.keys():
             # positions need to be handled here for the group as a whole
             init_position = self.agent_config[agent_type]['init_position']
-            # print(f"Agent Type: {agent_type}")
+            print(f"Agent Type: {agent_type}")
             # print(f"pos: {init_position}, form: {init_formation}")
             if init_position == 'None':
                 init_formation = self.agent_config[agent_type]['init_formation']
@@ -48,10 +55,6 @@ class Swarm:
                 print(f"Using initialization formation: {init_formation}")
                 init_position = get_curve(init_formation, 
                                           self.agent_config[agent_type]['num_agents'])   
-                
-                goals = None
-                path_planner = None
-                paths = []
 
                 if self.agent_config[agent_type]['controller_type'] == 'explore':
                     path_planner = RRT(env)
@@ -85,7 +88,14 @@ class Swarm:
                                         battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
                                         battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
                                         show_old_path = env.show_old_path))
-               
+
+
+        #________________________  Agent Additions  ________________________
+        # self.add_agent_criteria = 'min_n_agents'
+        # self.min_n_agents = 14 + 2
+        # self.add_agent_mode = 'add_agent_base'
+        self.add_agent_params = config.get('add_agent_params')
+        self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
 
     def get_states(self):
         return np.array([agent.state for agent in self.agents])
@@ -161,13 +171,35 @@ class Swarm:
     def run_controllers(self):
         self.update_neighbors()
 
-        for agent in self.agents[:]:  # Create a shallow copy for iteration
+        to_remove = []
+
+        for agent in self.agents:  # Create a shallow copy for iteration
             agent.run_controller(self)
             
             # Check battery and remove agent if it falls below the threshold
             if agent.is_battery_critical(): 
-                self.remove_agent(agent)  # Call the method to remove the agent
+                self.add_agent_swarm()
+                to_remove.append(agent)
+
+        for agent in to_remove:
+            self.remove_agent(agent)  # Call the method to remove the agent
 
     def remove_agent(self, agent):
         self.agents.remove(agent)
+        self.total_agents -= 1
         print(f"Agent {agent.agent_id} removed due to low battery.")
+
+
+    def add_agent_swarm(self):
+
+        # if add_agent_criteria == 'min_fiedler':
+        #     adjacency_matrix = self.compute_adjacency_matrix()
+        #     if self.compute_fiedler_value(A) <= self.min_fiedler:
+        #         add_agent(add_agent_mode, add_agent_criterion, self.agents)
+        
+        # el
+        if self.add_agent_params['criterion'] == 'min_n_agents':
+            if self.total_agents <= self.add_agent_params['critical_value']:
+                print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
+                self.add_agent()
+                self.total_agents += 1

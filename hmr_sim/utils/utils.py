@@ -72,3 +72,33 @@ def get_curve(formation, num_points=5, speed=None, dt=None):
     
     else:
         raise ValueError(f"Unsupported formation type: {formation_type}")
+
+
+def svstack(arrays):
+    """
+    Stacks arrays vertically, handling empty arrays by ensuring they have the correct number of columns.
+
+    Parameters:
+    - arrays: A list of numpy arrays to stack.
+
+    Returns:
+    - A vertically stacked numpy array.
+    """
+    # Filter out completely empty arrays and get the shape of the first non-empty array
+    arrays = [np.array(arr) for arr in arrays]
+    non_empty_arrays = [arr for arr in arrays if arr.size > 0]
+    if not non_empty_arrays:  # if all arrays are empty, return an empty array
+        return np.array([])
+    
+    # Assume all non-empty arrays have the same number of columns
+    num_columns = non_empty_arrays[0].shape[1] if len(non_empty_arrays[0].shape) > 1 else 0
+
+    # Reshape empty arrays to have the correct number of columns
+    arrays = [arr if arr.size > 0 else np.empty((0, num_columns)) for arr in arrays]
+
+    # Stack the arrays vertically
+    return np.vstack(arrays)
+
+# Helper function to calculate distance between two points
+def distance(p1, p2):
+    return np.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)

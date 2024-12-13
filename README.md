@@ -57,29 +57,33 @@ The base environments are defined in the `hmr_sim/hmr_sim/envs` directory. These
 
 ## TODOs
 
-### Hetro
-
 Road to gym:
 - [x] Update battery colors (fix vis function)
 - [x] Add method to remove agents
-- [ ] Add add agent pipeline, reuse gym functions
-
+- [x] Add add agent pipeline, reuse gym functions
+- [ ] Add add agent near
+- [ ] Add lattice based initialization
+- [ ] Recheck if rest of the scenerios work well
+- [ ] Add dotted circles for agents below critical battery and agents with full battery!
+- [ ] Rewrite agent additions, now with paths shown! Add method to show path of specific agents only (new agent)
+ 
 
 - [x] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
 - [x] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
-- [ ] Create UML of everything!!!
 - [x] Add options for diff controllers!
 - [x] Make connectivity controller distributed!
-- [ ] Fix path speed bug
 - [x] Add local obstacle avoidance
 
+Anon:
+- [ ] Create UML of everything!!!
+- [ ] Fix path speed bug
 
 Error handling:
 - [ ] Raise error if formation is initialized within any obstacle
+- [ ] Create a function to check if all config variable combos make sense!
 
 
 ## Bugs
-
 
 - [ ] Error: Possibly when agents enter the obstacle.
 yellow

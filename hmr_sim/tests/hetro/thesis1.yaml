@@ -9,23 +9,7 @@ dt: 0.1
 
 
 agent_config:
-  0:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
-    num_agents: 12
-    controller_type: connectivity_controller
-    obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
-    init_position: None     # Spawn agents at predefined positions (list of lists)
-    init_formation:         # Spawn agents as a formation (see options in documentation)
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 3.0
-    speed: 2.0
-    sensor_radius: 7.0      # Sensor readius for mapping
-    obs_radius: 0.75        # Distance at which obstacle avoidance activates
-    # Battery related variables
-    init_battery: [0.2,0.4,0.5,0.8,0.9,1.0,0.85,0.75, 0.86, 0.97, 0.67, 0.79]
-    battery_decay_rate: 0.001
-    battery_threshold: 0.14
-  1:
+  0:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 0
@@ -33,7 +17,7 @@ agent_config:
     speed: 0.8
     sensor_radius: 7.0
     obs_radius: 0.75
-  2:
+  1:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 0
@@ -50,10 +34,37 @@ agent_config:
     #     major_radius: 4.5
     sensor_radius: 7.0
     obs_radius: 0.75
+  2:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+    num_agents: 10
+    controller_type: connectivity_controller
+    obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
+    init_position: None     # Spawn agents at predefined positions (list of lists)
+    init_formation:         # Spawn agents as a formation (see options in documentation)
+      shape: Elipse
+      origin: [0.0,0.0]
+      major_radius: 3.0
+    speed: 2.0
+    sensor_radius: 7.0      # Sensor readius for mapping
+    obs_radius: 0.75        # Distance at which obstacle avoidance activates
+    # Battery related variables
+    init_battery: [0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65]
+    battery_decay_rate: 0.001
+    battery_threshold: 0.14
+
+
+# Add agent config for centralized swarm class
+add_agent_params:
+  mode: add_agent_base        # add_agent_base, add_agent_near
+  criterion: min_n_agents     # min_n_agents, min_fiedler
+  critical_value: 12         # value of the criterian chosen
+  battery_of_concern: 0.16
+  agent_type_to_add: 2
+  agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
+
 
 vis_params:
   render_type: nav               # rendering mode (nav, explore)
-  show_old_path: 10000       # show the history of state
+  show_old_path: 10           # show the history of states/past trajectory
 
 
 # ___________________ Controller Parameters ___________________

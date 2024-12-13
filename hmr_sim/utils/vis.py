@@ -19,9 +19,9 @@ class SwarmRenderer:
         self.old_paths = []  # List to store old agent paths
         self.adjacency_lines = []
         self.type_styles = {
-            0: {'cmap': 'Blues', 'marker': 'o'},
-            1: {'cmap': 'Reds', 'marker': '^'},
-            2: {'cmap': 'YlOrBr', 'marker': 's'}
+            2: {'cmap': 'Blues', 'marker': 'o'},
+            0: {'cmap': 'Reds', 'marker': '^'},
+            1: {'cmap': 'YlOrBr', 'marker': 's'}
         }
 
     def initialize(self):
@@ -47,11 +47,24 @@ class SwarmRenderer:
         self.paths = [None] * len(self.swarm.agents)
         self.old_paths = [None] * len(self.swarm.agents)
 
+
     def update_markers(self):
+
+        # Remove extra markers if agents are removed
+        while len(self.agent_markers) > len(self.swarm.agents):
+            marker = self.agent_markers.pop()
+            paths = self.paths.pop()
+            old_paths = self.old_paths.pop()
+            marker.remove()  # Remove the marker from the plot
+            paths.remove()
+            old_paths.remove()
+
+
         while len(self.agent_markers) < len(self.swarm.agents):
             self.agent_markers.append(None)
             self.paths.append(None)
             self.old_paths.append(None)
+
 
         for i, agent in enumerate(self.swarm.agents):
             style = self.type_styles.get(agent.type, {'cmap': 'Greys', 'marker': 'o'})
@@ -102,15 +115,10 @@ class SwarmRenderer:
         Updates or creates lines for the old paths of each agent.
         """
         for i, agent in enumerate(self.swarm.agents):
-            if agent.old_path is not None and len(agent.old_path) > 1:
-                print(f"Agent ID: {agent.agent_id}, old_path: {agent.old_path}")
-                
+            if agent.old_path is not None and len(agent.old_path) > 1:                
                 # Extract x and y coordinates
                 old_path_x = [p[0] for p in agent.old_path]
                 old_path_y = [p[1] for p in agent.old_path]
-
-                print(f"old path x {old_path_x}")
-                print(f"old path y {old_path_y}")
 
                 if self.old_paths[i]:
                     # Update the existing old path line

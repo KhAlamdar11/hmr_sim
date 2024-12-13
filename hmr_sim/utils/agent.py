@@ -14,8 +14,6 @@ class Agent:
                  battery_decay_rate = None, battery_threshold=None,
                  show_old_path=0):
         
-        # print(f"Type: {type}, ID: {agent_id}, batetery type: {init_battery}")
-
         # Base params
         self.type = type
         self.agent_id = agent_id
@@ -271,6 +269,10 @@ class Agent:
     def get_pos(self):
         return self.state[:2]
     
+    def set_pos(self,pos):
+        print(f"Type: {self.type}, ID: {self.agent_id}, batetery type: {self.battery}")
+        self.state[:2] = pos
+    
     def is_battery_critical(self):
         if self.battery <= self.battery_threshold:
             return True
@@ -281,10 +283,7 @@ class Agent:
             self.old_path.pop(0)  # Remove the oldest element
         
         if len(self.old_path) > 0:
-            print(f"element: {element}")
-            print(f"old_path: {self.old_path[-1]}")
             distance = np.linalg.norm(element - self.old_path[-1])
-            print(f"distance {distance}")
             if  distance > 0.1:
                 self.old_path.append(element)  # Add the new element
         elif len(self.old_path) == 0:
