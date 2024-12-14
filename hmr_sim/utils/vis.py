@@ -18,6 +18,7 @@ class SwarmRenderer:
         self.paths = []  # List to store agent paths
         self.old_paths = []  # List to store old agent paths
         self.adjacency_lines = []
+        self.battery_circles = []  # List to store battery status circles
         self.type_styles = {
             2: {'cmap': 'Blues', 'marker': 'o'},
             0: {'cmap': 'Reds', 'marker': '^'},
@@ -55,16 +56,17 @@ class SwarmRenderer:
             marker = self.agent_markers.pop()
             paths = self.paths.pop()
             old_paths = self.old_paths.pop()
-            marker.remove()  # Remove the marker from the plot
-            paths.remove()
-            old_paths.remove()
-
+            if marker is not None:
+                marker.remove()  # Remove the marker from the plot
+            if paths is not None:
+                paths.remove()
+            if old_paths is not None:
+                old_paths.remove()
 
         while len(self.agent_markers) < len(self.swarm.agents):
             self.agent_markers.append(None)
             self.paths.append(None)
             self.old_paths.append(None)
-
 
         for i, agent in enumerate(self.swarm.agents):
             style = self.type_styles.get(agent.type, {'cmap': 'Greys', 'marker': 'o'})
@@ -130,13 +132,59 @@ class SwarmRenderer:
                     )
                     self.old_paths[i] = old_path_line
 
+    def update_battery_circles(self):
+        # Remove extra circles if agents are removed
+        while len(self.battery_circles) > len(self.swarm.agents):
+            circle = self.battery_circles.pop()
+            circle.remove()  # Remove the circle from the plot
+
+        # Ensure enough circles exist for all agents
+        while len(self.battery_circles) < len(self.swarm.agents):
+            self.battery_circles.append(None)
+
+        # Update or create battery circles for each agent
+        for i, agent in enumerate(self.swarm.agents):
+            if agent.battery < self.swarm.add_agent_params['battery_of_concern']:
+                color = 'red'
+            elif agent.battery is not None and agent.battery > 0.95:
+                color = 'green'
+            else:
+                color = None
+
+            if color:
+                if self.battery_circles[i] is None:
+                    # Create a new circle
+                    circle = plt.Circle(
+                        (agent.state[0], agent.state[1]),
+                        0.4,
+                        edgecolor=color,
+                        facecolor='none',
+                        linestyle='dashed',
+                        linewidth=2,
+                        zorder=2,
+                        alpha=0.8
+                    )
+                    self.ax.add_patch(circle)
+                    self.battery_circles[i] = circle
+                else:
+                    # Update the existing circle
+                    self.battery_circles[i].center = (agent.state[0], agent.state[1])
+                    self.battery_circles[i].set_edgecolor(color)
+            else:
+                # Remove the circle if it exists and no longer needed
+                if self.battery_circles[i]:
+                    self.battery_circles[i].remove()
+                    self.battery_circles[i] = None
+
+
     def render(self):
         if self.fig is None:
             self.initialize()
         self.update_markers()
         self.update_adjacency_lines()
         # self.update_paths()
-        self.update_old_paths()  # Update old paths during each render
+        self.update_old_paths()  
+        self.update_battery_circles() 
         plt.draw()
         plt.pause(0.01)
 

@@ -61,10 +61,10 @@ Road to gym:
 - [x] Update battery colors (fix vis function)
 - [x] Add method to remove agents
 - [x] Add add agent pipeline, reuse gym functions
-- [ ] Add add agent near
+- [x] Add add agent near
 - [ ] Add lattice based initialization
 - [ ] Recheck if rest of the scenerios work well
-- [ ] Add dotted circles for agents below critical battery and agents with full battery!
+- [x] Add dotted circles for agents below critical battery and agents with full battery!
 - [ ] Rewrite agent additions, now with paths shown! Add method to show path of specific agents only (new agent)
  
 

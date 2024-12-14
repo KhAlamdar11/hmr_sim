@@ -172,14 +172,21 @@ class Swarm:
         self.update_neighbors()
 
         to_remove = []
+        to_add = []
 
         for agent in self.agents:  # Create a shallow copy for iteration
             agent.run_controller(self)
             
+            # Check battery is below first thresold and then add a new agent
+            if agent.battery < self.add_agent_params['battery_of_concern']:
+                to_add.append(agent)
+
             # Check battery and remove agent if it falls below the threshold
             if agent.is_battery_critical(): 
-                self.add_agent_swarm()
                 to_remove.append(agent)
+
+        for agent in to_add:
+            self.add_agent_swarm(agent)
 
         for agent in to_remove:
             self.remove_agent(agent)  # Call the method to remove the agent
@@ -190,7 +197,9 @@ class Swarm:
         print(f"Agent {agent.agent_id} removed due to low battery.")
 
 
-    def add_agent_swarm(self):
+    def add_agent_swarm(self,agent):
+
+        self.add_agent.set_neighbors(agent.neighbors)
 
         # if add_agent_criteria == 'min_fiedler':
         #     adjacency_matrix = self.compute_adjacency_matrix()

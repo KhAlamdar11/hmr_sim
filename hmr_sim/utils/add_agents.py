@@ -22,6 +22,10 @@ class AddAgent:
         # internal add agents params
         self.n_samples_per = 15
 
+        # For add_agent_near only: Neighboring agents
+        self.neighbors = None
+
+
         # Dispatch table for mode-to-method mapping
         self.mode_dispatch = {
             'add_agent_base': self.add_agent_base,
@@ -46,18 +50,35 @@ class AddAgent:
         new_pos = self.add_agent_at(pos)
         print(f"Adding new agent at position: {new_pos}")
 
-        # Create copy of a agent type of same name, and reinitialize its position
-        agent = self.find_sample_agent()
-        new_agent = deepcopy(agent)
-        new_agent.battery = 1.0
-        new_agent.set_pos(new_pos)
-        new_agent.old_path = []
-        self.agents.append(new_agent)
-
+        self.create_new_agent(new_pos)
 
 
     def add_agent_near(self):
-        pass
+        
+        arc = np.array([])
+        poss = np.array([])
+
+        for neigh in self.neighbors:
+            neigh_pos = neigh.get_pos()
+            res = self.add_agent_at(neigh_pos,return_all=True)
+            if res is None:
+                continue
+            a, pos = res
+            print(a,pos)
+            print("poss",poss)
+            arc = svstack([arc, a])
+            poss = np.concatenate([poss,pos])
+
+
+        if poss.shape[0]!=0:
+            m = np.argmax(poss)
+            
+            new_pos = np.array([arc[m,0],arc[m,1]])
+
+            self.create_new_agent(new_pos)
+
+
+            
 
 
     #______________________  utils  _____________________
@@ -72,8 +93,10 @@ class AddAgent:
             if agent.agent_id == self.agent_addition_id:
                 return agent.get_pos()
 
+    def set_neighbors(self,neighbors):
+        self.neighbors = neighbors
 
-    def add_agent_at(self,pos):
+    def add_agent_at(self,pos,return_all = False):
         '''
         Main function for add agent base strategy. Adds a new agent at the base.
         '''
@@ -101,15 +124,56 @@ class AddAgent:
                 possible_pts.append(arc[j])
                 possible_connections.append(cons)
 
-        arc, poss = np.array(possible_pts), np.array(possible_connections)
-        m = np.argmax(poss)
+        if len(possible_connections) != 0:
+            arc, poss = np.array(possible_pts), np.array(possible_connections)
+            m = np.argmax(poss)
+        else:
+            return None
         
+        if return_all:
+            return np.array(possible_pts), np.array(possible_connections)
+
         return np.array([arc[m,0],arc[m,1]])
 
-        # self.x = np.vstack([self.x,new_agent])
-        # self.n_agents += 1
-        # self.battery = np.append(self.battery, 1.0)
-        # self.in_motion = np.append(self.in_motion, False)
+
+
+    def add_agent_i(self,agent,n):
+        '''
+        Helper function for add agent near strategy.
+        '''
+        t = np.linspace(0, 2 * np.pi, 9)   
+        a, b = 0.4*self.comm_radius*np.cos(t), 0.4*self.comm_radius*np.sin(t)
+        a += self.x[n,0]
+        b += self.x[n,1]
+        arc = np.array([[a, b] for a, b in zip(a, b)])
+
+        # shortlist pts
+        possible_pts = []
+        possible_connections = []
+        for j in range(arc.shape[0]):
+            allow = True
+            cons = 0
+            for i in range(self.n_agents):
+                if i != n and distance(arc[j],self.x[i]) < self.comm_radius*0.3:
+                    allow = False
+                    break
+                elif i != n and i!=agent and distance(arc[j],self.x[i]) < self.comm_radius :
+                    cons += 1
+            if allow:
+                possible_pts.append(arc[j])
+                possible_connections.append(cons)
+
+        return np.array(possible_pts), np.array(possible_connections)
+
+
+    def create_new_agent(self,pos):
+        # Create copy of a agent type of same name, and reinitialize its position
+        agent = self.find_sample_agent()
+        new_agent = deepcopy(agent)
+        new_agent.battery = 1.0
+        new_agent.set_pos(pos)
+        new_agent.old_path = []
+        self.agents.append(new_agent)
 
 
 # def add_agent(add_agent_mode, agents, total_agents):
