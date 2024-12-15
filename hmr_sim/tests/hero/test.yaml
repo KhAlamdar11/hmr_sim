@@ -1,55 +1,42 @@
 # Environment Configuration
-env: Hetro-v0  # Name of the environment
-map_name: mapx  # Map name used in the environment
+env: Hero-v0  # Name of the environment
+map_name: map0  # Map name used in the environment
 
-# rendering mode (nav, explore)
-render: explore
 # Visibility radius of each agent
-vis_radius: 5.0
+vis_radius: 2.5
 # Time step for the simulation
 dt: 0.1
 
 agent_config:
-  0:
-    num_agents: 14    
+  UAV:
+    num_agents: 8    
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
     init_position: None     # Spawn agents at predefined positions (list of lists)
     init_formation:         # Spawn agents as a formation (see options in documentation)
       shape: Circle
-      origin: [0.0,0.0]
+      origin: [-3.5,3.5]
       radius: 1.0
     speed: 6.0
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
-  1:
+  Base:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 1
-    init_position: None
-    init_formation:
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 0.1
-    speed: 0.01
-    paths:
-      0:
-        shape: Square
-        origin: [0.0, 0.0]
-        side: 0.1
-    sensor_radius: 7.0
-    obs_radius: 0.75
-  2:
-    num_agents: 2
-    controller_type: explore
-    obstacle_avoidance: 1
-    init_position: None
-    init_formation:
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 0.75
+    init_position: [[-3.5,3.5]]
+    init_formation: None
     speed: 0.1
     sensor_radius: 7.0
+    obs_radius: 0.75
+  Robot:
+    num_agents: 1
+    controller_type: explore
+    obstacle_avoidance: 1
+    init_position: [[-3.5,3.5]]
+    init_formation: None
+    speed: 0.1
+    sensor_radius: 5.5
     obs_radius: 0.75
 
 
@@ -65,7 +52,7 @@ add_agent_params:
 
 vis_params:
   render_type: explore               # rendering mode (nav, explore)
-  show_old_path: 1           # show the history of states/past trajectory
+  show_old_path: 100           # show the history of states/past trajectory
   plot_limits: None # Put None if you want the whole map to be displayed
 
 # ___________________ Controller Parameters ___________________

@@ -3,6 +3,7 @@ from hmr_sim.utils.utils import svstack, distance
 from hmr_sim.utils.agent import Agent
 from copy import deepcopy
 
+
 class AddAgent:
 
     def __init__(self, params, agents, comm_radius):
@@ -60,7 +61,7 @@ class AddAgent:
 
         for neigh in self.neighbors:
             neigh_pos = neigh.get_pos()
-            res = self.add_agent_at(neigh_pos,return_all=True)
+            res = self.add_agent_at(neigh_pos,return_all=True,factor_comm=0.37,factor_dist=0.3)
             if res is None:
                 continue
             a, pos = res
@@ -96,12 +97,12 @@ class AddAgent:
     def set_neighbors(self,neighbors):
         self.neighbors = neighbors
 
-    def add_agent_at(self,pos,return_all = False):
+    def add_agent_at(self,pos,return_all=False, factor_comm=0.7, factor_dist=0.7):
         '''
         Main function for add agent base strategy. Adds a new agent at the base.
         '''
         t = np.linspace(0, 2 * np.pi, self.n_samples_per)   
-        a, b = 0.7*self.comm_radius*np.cos(t), 0.7*self.comm_radius*np.sin(t)
+        a, b = factor_comm*self.comm_radius*np.cos(t), factor_comm*self.comm_radius*np.sin(t)
         a += pos[0]
         b += pos[1]
         arc = np.array([[a, b] for a, b in zip(a, b)])
@@ -113,13 +114,15 @@ class AddAgent:
             allow = True
             cons = 0
             for agent in self.agents:
-                if agent.agent_id != self.agent_addition_id and \
-                                    distance(arc[j],agent.get_pos()) < self.comm_radius*0.7:
+                if distance(arc[j],agent.get_pos()) < self.comm_radius*factor_dist:
                     allow = False
                     break
-                elif agent.agent_id != self.agent_addition_id and \
+                elif agent.agent_id != self.agent_addition_id and\
                                     distance(arc[j],agent.get_pos()) < self.comm_radius:
-                    cons += 1
+                    if self.mode == 'add_agent_base':
+                        cons += 1
+                    elif self.mode == 'add_agent_near' and agent in self.neighbors:
+                        cons += 1
             if allow:
                 possible_pts.append(arc[j])
                 possible_connections.append(cons)

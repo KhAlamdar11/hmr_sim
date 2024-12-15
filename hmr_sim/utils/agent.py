@@ -51,6 +51,8 @@ class Agent:
         # #________________________  controller  ________________________
         self.controller_type = config['controller_type']
 
+        print(f'Agent ID: {self.agent_id}, Type: {self.type}, Controller: {self.controller_type}')
+
         if self.controller_type == 'connectivity_controller':
             self.controller = ConnectivityController(params=controller_params)
         elif self.controller_type == 'go_to_goal':
@@ -62,6 +64,7 @@ class Agent:
             self.controller = path_planner
         elif self.controller_type == 'path_tracker':
             self.set_path(path)
+
 
 
     # def update_state(self, swarm, action, is_free_space_fn):
@@ -111,7 +114,7 @@ class Agent:
                 self.state[:2] = proposed_position
 
             element = deepcopy(self.state[:2])        
-            self.update_path_history(element)
+            # self.update_path_history(element)
 
 
         
@@ -274,8 +277,9 @@ class Agent:
         self.state[:2] = pos
     
     def is_battery_critical(self):
-        if self.battery <= self.battery_threshold:
-            return True
+        if self.battery_decay_rate is not None:
+            if self.battery <= self.battery_threshold:
+                return True
         return False
 
     def update_path_history(self,element):

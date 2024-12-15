@@ -10,8 +10,6 @@ hmr_sim/controllers/__init__.py
 hmr_sim/controllers/bug0.py
 hmr_sim/controllers/frontier_explore.py
 hmr_sim/controllers/rrt.py
-hmr_sim/tests/__init__.py
-hmr_sim/tests/utils/keyboard_controller.py
 hmr_sim/utils/__init__.py
 hmr_sim/utils/agent.py
 hmr_sim/utils/swarm.py

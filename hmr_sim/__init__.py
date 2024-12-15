@@ -5,3 +5,9 @@ register(
     entry_point="hmr_sim.envs.hetro:HetroV0",  # Correct path to the Homo class
     max_episode_steps=10000000000000000000000,
 )
+
+register(
+    id="Hero-v0",  # Name of the environment
+    entry_point="hmr_sim.envs.hero:HeroV0",  # Correct path to the Homo class
+    max_episode_steps=10000000000000000000000,
+)

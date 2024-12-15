@@ -6,13 +6,13 @@ import ast
 
 from hmr_sim.envs.hetro.base import BaseEnv
 
-from hmr_sim.utils.swarm import Swarm
+from hmr_sim.utils.hero.swarm3d import Swarm3D
 from hmr_sim.utils.utils import get_curve
-from hmr_sim.utils.vis import SwarmRenderer
+from hmr_sim.utils.hero.vis3d import SwarmRenderer3D
 
 np.random.seed(12)
 
-class HetroV0(BaseEnv):
+class HeroV0(BaseEnv):
 
     def __init__(self, config):
         super().__init__(config)
@@ -29,7 +29,7 @@ class HetroV0(BaseEnv):
         self.show_old_path = config.get('vis_params')['show_old_path']
 
 
-        self.swarm = Swarm(env=self,
+        self.swarm = Swarm3D(env=self,
                            config = config,
                            map_resolution=self.resolution,
                            map_handlers={'update_exploration_map': self.update_exploration_map,
@@ -37,7 +37,7 @@ class HetroV0(BaseEnv):
                                         'is_line_of_sight_free': self.is_line_of_sight_free,
                                         'get_frontier_goal': self.get_frontier_goal})
 
-        self.render_func = SwarmRenderer(render_type=self.render_type,
+        self.render_func = SwarmRenderer3D(render_type=self.render_type,
                                          env=self,
                                          swarm=self.swarm, occupancy_grid=self.occupancy_grid, 
                                         origin=self.origin, resolution=self.resolution, 

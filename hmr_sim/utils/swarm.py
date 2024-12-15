@@ -23,11 +23,11 @@ class Swarm:
         self.agent_config = config.get('agent_config')
 
         #________________________  controller  ________________________
-        controller_params = config.get('controller_params')
-        sigma = math.sqrt(-self.vis_radius/(2*math.log(controller_params['delta'])))
-        controller_params['sigma'] = sigma
-        controller_params['range'] = self.vis_radius
-        controller_params['repelThreshold'] = self.vis_radius*controller_params['repelThreshold']
+        self.controller_params = config.get('controller_params')
+        sigma = math.sqrt(-self.vis_radius/(2*math.log(self.controller_params['delta'])))
+        self.controller_params['sigma'] = sigma
+        self.controller_params['range'] = self.vis_radius
+        self.controller_params['repelThreshold'] = self.vis_radius*self.controller_params['repelThreshold']
 
         self.total_agents = self.total_agents = sum(inner_dict["num_agents"] for inner_dict in self.agent_config.values())
 
@@ -90,7 +90,7 @@ class Swarm:
                                         vis_radius = self.vis_radius,
                                         map_resolution = map_resolution,
                                         config = self.agent_config[agent_type],
-                                        controller_params = controller_params,
+                                        controller_params = self.controller_params,
                                         path_planner = path_planner,
                                         path = paths[n] if paths!=[] else [],
                                         goal = goals[n] if goals is not None else None,
