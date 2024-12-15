@@ -10,7 +10,7 @@ vis_radius: 3.0
 dt: 0.1
 
 agent_config:
-  0:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+  2:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
     num_agents: 8    
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
@@ -43,7 +43,7 @@ agent_config:
         major_radius: 2.0
     sensor_radius: 7.0
     obs_radius: 0.75
-  2:
+  0:
     num_agents: 2
     controller_type: go_to_goal
     obstacle_avoidance: 0
@@ -61,6 +61,17 @@ vis_params:
   render_type: nav               # rendering mode (nav, explore)
   show_old_path: 10000       # show the history of state
 
+
+# Add agent config for centralized swarm class
+add_agent_params:
+  mode: add_agent_base        # add_agent_base, add_agent_near
+  criterion: min_n_agents     # min_n_agents, min_fiedler
+  critical_value: 10         # value of the criterian chosen
+  battery_of_concern: 0.16
+  agent_type_to_add: 1
+  agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
+
+
 # ___________________ Controller Parameters ___________________
 # Parameters for the connectivity_controller
 controller_params:
@@ -70,7 +81,7 @@ controller_params:
   normalized: 0  # Whether the values are normalized (0: No, 1: Yes)
   epsilon: 0.01  # Small constant for stability
   gainConnectivity: 1.0  # Gain for connectivity control
-  gainRepel: 0.08  # Gain for repulsion
+  gainRepel: 0.02  # Gain for repulsion
   unweighted: 1  # Use unweighted control (0: No, 1: Yes)
   v_max: 0.3  # Maximum velocity of the agents
   critical_battery_level: 0.14  # Threshold for critical battery level

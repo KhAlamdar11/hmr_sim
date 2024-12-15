@@ -70,12 +70,12 @@ class ConnectivityController:
                 k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
 
             # Accumulate control contributions
-            if agent.type == 2:
-                control_vector[0] += k * dx * 3 
-                control_vector[1] += k * dy * 3
-            else:
-                control_vector[0] += k * dx 
-                control_vector[1] += k * dy
+            # if agent.type == 2:
+            #     control_vector[0] += k * dx * 3 
+            #     control_vector[1] += k * dy * 3
+            # else:
+            control_vector[0] += k * dx 
+            control_vector[1] += k * dy
 
 
         # Scale control input

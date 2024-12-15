@@ -5,7 +5,7 @@ import matplotlib.colors as mcolors
 
 
 class SwarmRenderer:
-    def __init__(self, swarm, occupancy_grid, origin, resolution, vis_radius=None):
+    def __init__(self, swarm, occupancy_grid, origin, resolution, vis_radius=None, plot_limits=None):
         self.swarm = swarm
         self.occupancy_grid = occupancy_grid
         self.origin = origin
@@ -20,10 +20,12 @@ class SwarmRenderer:
         self.adjacency_lines = []
         self.battery_circles = []  # List to store battery status circles
         self.type_styles = {
-            2: {'cmap': 'Blues', 'marker': 'o'},
+            1: {'cmap': 'Blues', 'marker': 'o'},
             0: {'cmap': 'Reds', 'marker': '^'},
-            1: {'cmap': 'YlOrBr', 'marker': 's'}
+            2: {'cmap': 'YlOrBr', 'marker': 's'}
         }
+        self.plot_limits = plot_limits
+
 
     def initialize(self):
         plt.ion()
@@ -40,8 +42,12 @@ class SwarmRenderer:
         self.ax.set_xticks([])
         self.ax.set_yticks([])
         self.ax.axis('off')
-        self.ax.set_xlim(extent[0], extent[1])
-        self.ax.set_ylim(extent[2], extent[3])
+        if self.plot_limits is not None:
+            self.ax.set_xlim(self.plot_limits[0], self.plot_limits[1])
+            self.ax.set_ylim(self.plot_limits[2], self.plot_limits[3])            
+        else:
+            self.ax.set_xlim(extent[0], extent[1])
+            self.ax.set_ylim(extent[2], extent[3])
         self.ax.set_aspect('equal', 'box')
 
         # Initialize paths and old paths
@@ -76,7 +82,7 @@ class SwarmRenderer:
             if self.agent_markers[i] is None:
                 marker, = self.ax.plot(
                     [agent.state[0]], [agent.state[1]], style['marker'],
-                    mfc=color, mec='black', markersize=13, zorder=3
+                    mfc=color, mec='black', markersize=15, zorder=3
                 )
                 self.agent_markers[i] = marker
             else:
@@ -114,29 +120,41 @@ class SwarmRenderer:
 
     def update_old_paths(self):
         """
-        Updates or creates lines for the old paths of each agent.
+        Updates or creates lines for the old paths of each agent, 
+        with arrows showing the direction of movement at fixed intervals.
         """
+
         for i, agent in enumerate(self.swarm.agents):
-            if agent.old_path is not None and len(agent.old_path) > 1:                
+            if agent.old_path is not None and len(agent.old_path) > 1:
                 # Extract x and y coordinates
                 old_path_x = [p[0] for p in agent.old_path]
                 old_path_y = [p[1] for p in agent.old_path]
 
+                # Update the existing dashed line for the path
                 if self.old_paths[i]:
-                    # Update the existing old path line
                     self.old_paths[i].set_data(old_path_x, old_path_y)
                 else:
-                    # Create a new old path line
                     old_path_line, = self.ax.plot(
-                        old_path_x, old_path_y, color='green', linestyle='--', linewidth=2.0, alpha=0.5, zorder=1
+                        old_path_x, old_path_y, color='blue', linestyle='--', linewidth=2.0, alpha=0.3, zorder=1
                     )
                     self.old_paths[i] = old_path_line
+
+                if (len(agent.old_path) - 2) % 6 == 0: 
+                    dx = old_path_x[-1] - old_path_x[-2]
+                    dy = old_path_y[-1] - old_path_y[-2]
+
+                    self.ax.quiver(
+                        old_path_x[-2], old_path_y[-2], dx, dy,
+                        angles='xy', scale_units='xy', scale=1.5, color='blue', alpha=0.05, zorder=2
+                    )
+
 
     def update_battery_circles(self):
         # Remove extra circles if agents are removed
         while len(self.battery_circles) > len(self.swarm.agents):
             circle = self.battery_circles.pop()
-            circle.remove()  # Remove the circle from the plot
+            if circle is not None:
+                circle.remove()  # Remove the circle from the plot
 
         # Ensure enough circles exist for all agents
         while len(self.battery_circles) < len(self.swarm.agents):
@@ -146,7 +164,7 @@ class SwarmRenderer:
         for i, agent in enumerate(self.swarm.agents):
             if agent.battery < self.swarm.add_agent_params['battery_of_concern']:
                 color = 'red'
-            elif agent.battery is not None and agent.battery > 0.95:
+            elif agent.battery is not None and agent.battery > 0.85:
                 color = 'green'
             else:
                 color = None
@@ -156,7 +174,7 @@ class SwarmRenderer:
                     # Create a new circle
                     circle = plt.Circle(
                         (agent.state[0], agent.state[1]),
-                        0.4,
+                        0.2,
                         edgecolor=color,
                         facecolor='none',
                         linestyle='dashed',

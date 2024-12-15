@@ -68,12 +68,6 @@ Road to gym:
 - [ ] Rewrite agent additions, now with paths shown! Add method to show path of specific agents only (new agent)
  
 
-- [x] All config variables related to hetro swarm increase an order... num agents becomes [3,4] meaning 3 agents of type 0 and 4 of type 1.
-- [x] Formation init: Allow formation for some, and manual initialization for others. Change both init_pos and init_form logic, and use a dictionary for it! {0: [POSITIONS], 1: [cIRCLE,]} ...
-- [x] Add options for diff controllers!
-- [x] Make connectivity controller distributed!
-- [x] Add local obstacle avoidance
-
 Anon:
 - [ ] Create UML of everything!!!
 - [ ] Fix path speed bug
@@ -99,3 +93,66 @@ ValueError: cannot convert float NaN to integer
 - [ ] RRT KNOWS THE WHOLE MAP!
 
 - [ ] Sometimes old maps remain!
+
+- [ ] Sometimes something goes horibly wrong when network breaks
+
+nton-superior@antonsuperior:~/hmr_sim/hmr_sim/tests$ python3 hetro/test_hetro.py thesis1.yaml
+Loading configuration from: /home/anton-superior/hmr_sim/hmr_sim/tests/hetro/thesis1.yaml
+Initializing environment: Hetro-v0
+Using initialization formation: {'shape': 'lattice', 'origin': [0.0, 0.0], 'major_radius': 3.0}
+Number of agents is 12, which is <= 12
+base: [-3.5  0. ]
+Adding new agent at position: [-3.11058837  1.70612385]
+Type: 2, ID: 2, batetery type: 1.0
+Agent 2 removed due to low battery.
+Number of agents is 12, which is <= 12
+base: [-3.5  0. ]
+Adding new agent at position: [-4.59110715  1.36820509]
+Type: 2, ID: 3, batetery type: 1.0
+Agent 3 removed due to low battery.
+Number of agents is 12, which is <= 12
+base: [-3.5  0. ]
+Adding new agent at position: [-3.88941163 -1.70612385]
+Type: 2, ID: 4, batetery type: 1.0
+Agent 4 removed due to low battery.
+Number of agents is 12, which is <= 12
+base: [-3.5  0. ]
+Adding new agent at position: [-5.07669552  0.75929654]
+Type: 2, ID: 5, batetery type: 1.0
+Agent 5 removed due to low battery.
+Number of agents is 12, which is <= 12
+base: [-3.5  0. ]
+Adding new agent at position: None
+Type: 2, ID: 6, batetery type: 1.0
+Traceback (most recent call last):
+  File "/home/anton-superior/hmr_sim/hmr_sim/tests/hetro/test_hetro.py", line 73, in <module>
+    main()
+  File "/home/anton-superior/hmr_sim/hmr_sim/tests/hetro/test_hetro.py", line 70, in main
+    run(config)
+  File "/home/anton-superior/hmr_sim/hmr_sim/tests/hetro/test_hetro.py", line 40, in run
+    env.render()
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/gymnasium/core.py", line 332, in render
+    return self.env.render()
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/gymnasium/wrappers/common.py", line 409, in render
+    return super().render()
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/gymnasium/core.py", line 332, in render
+    return self.env.render()
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/gymnasium/wrappers/common.py", line 303, in render
+    return self.env.render()
+  File "/home/anton-superior/hmr_sim/hmr_sim/envs/hetro/hetro_v0.py", line 56, in render
+    self.render_func.render()
+  File "/home/anton-superior/hmr_sim/hmr_sim/utils/vis.py", line 184, in render
+    self.update_adjacency_lines()
+  File "/home/anton-superior/hmr_sim/hmr_sim/utils/vis.py", line 91, in update_adjacency_lines
+    adjacency_matrix = self.swarm.compute_adjacency_matrix()
+  File "/home/anton-superior/hmr_sim/hmr_sim/utils/swarm.py", line 139, in compute_adjacency_matrix
+    distance = euclidean(positions[i], positions[j])
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/scipy/spatial/distance.py", line 520, in euclidean
+    return minkowski(u, v, p=2, w=w)
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/scipy/spatial/distance.py", line 480, in minkowski
+    dist = norm(u_v, ord=p)
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/scipy/linalg/_misc.py", line 146, in norm
+    a = np.asarray_chkfinite(a)
+  File "/home/anton-superior/.local/lib/python3.10/site-packages/numpy/lib/function_base.py", line 628, in asarray_chkfinite
+    raise ValueError(
+ValueError: array must not contain infs or NaNs

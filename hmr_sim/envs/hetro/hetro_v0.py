@@ -38,9 +38,10 @@ class HetroV0(BaseEnv):
                                         'get_frontier_goal': self.get_frontier_goal})
 
         self.render_func = SwarmRenderer(swarm=self.swarm, occupancy_grid=self.occupancy_grid, 
-                                    origin=self.origin, resolution=self.resolution, 
-                                    vis_radius=self.vis_radius)
-        
+                                        origin=self.origin, resolution=self.resolution, 
+                                        vis_radius=self.vis_radius, 
+                                        plot_limits = config.get('vis_params')['plot_limits'] if config.get('vis_params')['plot_limits'] != 'None' else None)
+            
         
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)

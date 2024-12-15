@@ -5,7 +5,7 @@ import math
 from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.rrt import RRT
 from hmr_sim.utils.add_agents import AddAgent
-
+from hmr_sim.utils.lattice_generation import gen_lattice
 
 class Swarm:
     """Manages a swarm of heterogeneous agents."""
@@ -40,35 +40,45 @@ class Swarm:
 
         #________________________  instance definitions  ________________________
         self.agents = []
-        id_n = 0
         goals = None
         path_planner = None
         paths = []
         for agent_type in self.agent_config.keys():
-            # positions need to be handled here for the group as a whole
+
+            #__________________  Initial position handling  ___________________
             init_position = self.agent_config[agent_type]['init_position']
-            print(f"Agent Type: {agent_type}")
-            # print(f"pos: {init_position}, form: {init_formation}")
             if init_position == 'None':
                 init_formation = self.agent_config[agent_type]['init_formation']
-                # If init position is empty, create the formation
                 print(f"Using initialization formation: {init_formation}")
-                init_position = get_curve(init_formation, 
-                                          self.agent_config[agent_type]['num_agents'])   
+                if init_formation['shape'] != 'lattice':
+                    init_position = get_curve(init_formation, 
+                                            self.agent_config[agent_type]['num_agents'])   
+                else:
+                    start = np.array([0.0,0.0])
+                    end = np.array([3.5,0.0])
+                    init_position = gen_lattice(self.agent_config[agent_type]['num_agents'], 
+                                                self.vis_radius, 
+                                                start, end)
+            
+            goals = None
+            path_planner = None
+            paths = []
 
-                if self.agent_config[agent_type]['controller_type'] == 'explore':
-                    path_planner = RRT(env)
-                elif self.agent_config[agent_type]['controller_type'] == 'go_to_goal':
-                    path_planner = RRT(env)
-                    goals = self.agent_config[agent_type]['goals']
-                elif self.agent_config[agent_type]['controller_type'] == 'path_tracker':
-                    for path in list(self.agent_config[agent_type]['paths'].values()):
-                        paths.append(get_curve(path, 
-                                               speed=self.agent_config[agent_type]['speed'],
-                                               dt=self.dt))
-                        
+
+            if self.agent_config[agent_type]['controller_type'] == 'explore':
+                path_planner = RRT(env)
+            elif self.agent_config[agent_type]['controller_type'] == 'go_to_goal':
+                path_planner = RRT(env)
+                goals = self.agent_config[agent_type]['goals']
+            elif self.agent_config[agent_type]['controller_type'] == 'path_tracker':
+                for path in list(self.agent_config[agent_type]['paths'].values()):
+                    paths.append(get_curve(path, 
+                                            speed=self.agent_config[agent_type]['speed'],
+                                            dt=self.dt))
             # baterries
             init_battery = self.agent_config.get(agent_type).get('init_battery', None)
+            if init_battery=='autofill':
+                init_battery = np.linspace(0.2, 0.9, self.agent_config[agent_type]['num_agents'])        
             battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
             battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
 
@@ -212,3 +222,14 @@ class Swarm:
                 print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
                 self.add_agent()
                 self.total_agents += 1
+
+    #______________________  TESTS  ___________________
+
+    def show_neighbors_per_agent(self):
+        print('======================================')
+        for agent in self.agents:
+            print(f'Neighbors of agent {agent.agent_id} of type {agent.type} at {agent.get_pos()}')
+            for neigh in agent.neighbors:
+                print(f'Neighbors ID {neigh.agent_id} of type {neigh.type} at {neigh.get_pos()}')
+            print('-----------------------------------')
+            
