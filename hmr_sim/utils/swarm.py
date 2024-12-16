@@ -184,8 +184,11 @@ class Swarm:
         to_remove = []
         to_add = []
 
+        all_active = self.all_active()
+
         for agent in self.agents:  # Create a shallow copy for iteration
-            agent.run_controller(self)
+            if all_active or agent.type=='UAV':
+                agent.run_controller(self)
             
             # Check battery is below first thresold and then add a new agent
             if agent.battery < self.add_agent_params['battery_of_concern']:
@@ -200,6 +203,12 @@ class Swarm:
 
         for agent in to_remove:
             self.remove_agent(agent)  # Call the method to remove the agent
+
+    def all_active(self):
+        for agent in self.agents:
+            if agent.mode != 'active':
+                return False
+        return True
 
     def remove_agent(self, agent):
         self.agents.remove(agent)

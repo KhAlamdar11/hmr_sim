@@ -3,7 +3,7 @@ env: Hero-v0  # Name of the environment
 map_name: map0  # Map name used in the environment
 
 # Visibility radius of each agent
-vis_radius: 2.5
+vis_radius: 3.5
 # Time step for the simulation
 dt: 0.1
 

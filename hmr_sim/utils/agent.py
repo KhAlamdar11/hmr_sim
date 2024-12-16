@@ -20,6 +20,8 @@ class Agent:
         self.dt = dt
         self.vis_radius = vis_radius
         self.map_resolution = map_resolution
+        self.mode = 'active'
+
 
         # Config params
         self.obstacle_avoidance = config['obstacle_avoidance']

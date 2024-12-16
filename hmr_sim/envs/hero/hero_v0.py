@@ -28,7 +28,6 @@ class HeroV0(BaseEnv):
         self.render_type = config.get('vis_params')['render_type']
         self.show_old_path = config.get('vis_params')['show_old_path']
 
-
         self.swarm = Swarm3D(env=self,
                            config = config,
                            map_resolution=self.resolution,

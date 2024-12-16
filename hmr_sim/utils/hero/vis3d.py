@@ -131,7 +131,8 @@ class SwarmRenderer3D(SwarmRenderer):
                     # Create 2D marker
                     marker, = self.ax.plot(
                         [agent.state[0]], [agent.state[1]], [agent.state[2]],  # Include Z-axis
-                        style['marker'], mfc=color, mec='black', markersize=10, zorder=4
+                        style['marker'], mfc=color, mec='black', markersize=10, 
+                        zorder=5 if agent.type=='UAV' else 4
                     )
                     self.agent_markers[i] = marker
                 else:
@@ -166,7 +167,7 @@ class SwarmRenderer3D(SwarmRenderer):
                     # Create a 3D line
                     line = Line3D(
                         [pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]], [z1, z2],
-                        color='yellow', alpha=1.0, linewidth=3.0, zorder=3
+                        color='yellow', alpha=0.3, linewidth=3.0, zorder=3
                     )
                     self.ax.add_line(line)  # Add line to the plot
                     self.adjacency_lines.append(line)

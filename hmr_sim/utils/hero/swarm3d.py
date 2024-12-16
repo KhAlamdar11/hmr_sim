@@ -1,7 +1,7 @@
 
-from hmr_sim.utils.hero.agent3d import Agent3D
+from hmr_sim.utils.hero.agent3d import UAV
 
-# from hmr_sim.utils.agent import Agent as Agent3D
+from hmr_sim.utils.agent import Agent
 
 import numpy as np
 from scipy.spatial.distance import euclidean
@@ -67,21 +67,39 @@ class Swarm3D(Swarm):
             battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
 
             for n in range(self.agent_config[agent_type]['num_agents']):
-                self.agents.append(Agent3D(type = agent_type,
-                                        agent_id = len(self.agents), 
-                                        init_position = init_position[n],
-                                        dt = self.dt, 
-                                        vis_radius = self.vis_radius,
-                                        map_resolution = map_resolution,
-                                        config = self.agent_config[agent_type],
-                                        controller_params = self.controller_params,
-                                        path_planner = path_planner,
-                                        path = paths[n] if paths!=[] else [],
-                                        goal = goals[n] if goals is not None else None,
-                                        init_battery = init_battery[n] if init_battery is not None else 0.5,
-                                        battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
-                                        battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
-                                        show_old_path = env.show_old_path))
+                print(f'agent_type: {agent_type}') 
+                if agent_type == 'UAV':
+                    self.agents.append(UAV(type = agent_type,
+                                            agent_id = len(self.agents), 
+                                            init_position = init_position[n],
+                                            dt = self.dt, 
+                                            vis_radius = self.vis_radius,
+                                            map_resolution = map_resolution,
+                                            config = self.agent_config[agent_type],
+                                            controller_params = self.controller_params,
+                                            path_planner = path_planner,
+                                            path = paths[n] if paths!=[] else [],
+                                            goal = goals[n] if goals is not None else None,
+                                            init_battery = init_battery[n] if init_battery is not None else 0.5,
+                                            battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
+                                            battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
+                                            show_old_path = env.show_old_path))
+                else:
+                    self.agents.append(Agent(type = agent_type,
+                                            agent_id = len(self.agents), 
+                                            init_position = init_position[n],
+                                            dt = self.dt, 
+                                            vis_radius = self.vis_radius,
+                                            map_resolution = map_resolution,
+                                            config = self.agent_config[agent_type],
+                                            controller_params = self.controller_params,
+                                            path_planner = path_planner,
+                                            path = paths[n] if paths!=[] else [],
+                                            goal = goals[n] if goals is not None else None,
+                                            init_battery = init_battery[n] if init_battery is not None else 0.5,
+                                            battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
+                                            battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
+                                            show_old_path = env.show_old_path))
                 
 
     def compute_adjacency_matrix(self):
@@ -119,3 +137,6 @@ class Swarm3D(Swarm):
                         adjacency_matrix[j, i] = 1  # Symmetric adjacency matrix
 
         return adjacency_matrix
+    
+    # def remove_agent(self, agent):
+    #     agent.mode = 'land'
