@@ -70,7 +70,7 @@ class ConnectivityController:
                 k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
 
             # Accumulate control contributions
-            if agent.type == 'Robot':
+            if agent.type == 'Robot' or agent.type == 2:
                 control_vector[0] += k * dx * 2 
                 control_vector[1] += k * dy * 2
             else:

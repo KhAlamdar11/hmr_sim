@@ -106,6 +106,7 @@ class Swarm:
         # self.add_agent_mode = 'add_agent_base'
         self.add_agent_params = config.get('add_agent_params')
         self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
+        self.add_agent_already_added = []
 
     def get_states(self):
         return np.array([agent.state for agent in self.agents])
@@ -141,6 +142,7 @@ class Swarm:
 
         for i in range(num_agents):
             for j in range(i + 1, num_agents):  # Check only upper triangular to avoid redundancy
+                print(positions[i], positions[j])
                 distance = euclidean(positions[i], positions[j])
                 if distance <= self.vis_radius:
                     if edge_osbtacle[i] and edge_osbtacle[j]:
@@ -189,19 +191,23 @@ class Swarm:
         for agent in self.agents:  # Create a shallow copy for iteration
             if all_active or agent.type=='UAV':
                 agent.run_controller(self)
-            
+
+        for agent in self.agents:  # Create a shallow copy for iteration            
             # Check battery is below first thresold and then add a new agent
-            if agent.battery < self.add_agent_params['battery_of_concern']:
+            if agent.battery < self.add_agent_params['battery_of_concern'] and \
+                                agent not in self.add_agent_already_added:
                 to_add.append(agent)
+                self.add_agent_already_added.append(agent)
 
             # Check battery and remove agent if it falls below the threshold
             if agent.is_battery_critical(): 
                 to_remove.append(agent)
 
         for agent in to_add:
-            self.add_agent_swarm(agent)
+            self.add_agent_swarm(agent,self.add_agent_already_added)
 
         for agent in to_remove:
+            self.add_agent_already_added.remove(agent)
             self.remove_agent(agent)  # Call the method to remove the agent
 
     def all_active(self):
@@ -216,7 +222,7 @@ class Swarm:
         print(f"Agent {agent.agent_id} removed due to low battery.")
 
 
-    def add_agent_swarm(self,agent):
+    def add_agent_swarm(self,agent,to_remove):
 
         self.add_agent.set_neighbors(agent.neighbors)
 
@@ -227,7 +233,7 @@ class Swarm:
         
         # el
         if self.add_agent_params['criterion'] == 'min_n_agents':
-            if self.total_agents <= self.add_agent_params['critical_value']:
+            if self.total_agents - len(to_remove) <= self.add_agent_params['critical_value']:
                 print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
                 self.add_agent()
                 self.total_agents += 1

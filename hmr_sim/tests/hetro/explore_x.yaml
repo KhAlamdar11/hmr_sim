@@ -10,7 +10,7 @@ vis_radius: 5.0
 dt: 0.1
 
 agent_config:
-  0:
+  1:
     num_agents: 14    
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
@@ -22,7 +22,7 @@ agent_config:
     speed: 6.0
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
-  1:
+  0:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 1

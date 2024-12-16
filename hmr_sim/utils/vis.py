@@ -103,7 +103,7 @@ class SwarmRenderer:
             if self.agent_markers[i] is None:
                 marker, = self.ax.plot(
                     [agent.state[0]], [agent.state[1]], style['marker'],
-                    mfc=color, mec='black', markersize=20, zorder=3
+                    mfc=color, mec='black', markersize=15, zorder=3
                 )
                 self.agent_markers[i] = marker
             else:
@@ -146,7 +146,7 @@ class SwarmRenderer:
         """
 
         for i, agent in enumerate(self.swarm.agents):
-            if agent.old_path is not None and len(agent.old_path) > 1:
+            if agent.old_path is not None and len(agent.old_path) > 1 and agent.battery > 0.85:
                 # Extract x and y coordinates
                 old_path_x = [p[0] for p in agent.old_path]
                 old_path_y = [p[1] for p in agent.old_path]
@@ -225,7 +225,7 @@ class SwarmRenderer:
             self.initialize()
         self.update_markers()
         self.update_adjacency_lines()
-        # self.update_paths()
+        self.update_paths()
         self.update_old_paths()  
         self.update_battery_circles() 
         if self.render_type=='explore':

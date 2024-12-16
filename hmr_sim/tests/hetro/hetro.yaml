@@ -5,7 +5,7 @@ map_name: map1  # Map name used in the environment
 # rendering mode (nav, explore)
 render: nav
 # Visibility radius of each agent
-vis_radius: 3.0
+vis_radius: 2.5
 # Time step for the simulation
 dt: 0.1
 
@@ -26,11 +26,11 @@ agent_config:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 0
-    init_position: None
-    init_formation:
-      shape: Elipse
-      origin: [0.0,0.0]
-      major_radius: 0.5
+    init_position: [[0.0,0.0]]
+    init_formation: None
+      # shape: Elipse
+      # origin: [0.0,0.0]
+      # major_radius: 0.5
     speed: 0.3
     paths:      # Must match number of agents
       0:
@@ -52,7 +52,7 @@ agent_config:
       shape: Elipse
       origin: [0.0,0.0]
       major_radius: 0.01
-    speed: 0.03
+    speed: 0.01
     goals: [[3.5,3.5],[-3.5,3.5],[3.5,-3.5],[-3.5,-3.5]]
     sensor_radius: 7.0
     obs_radius: 0.75

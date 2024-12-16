@@ -21,7 +21,7 @@ class AddAgent:
         self.comm_radius = comm_radius
 
         # internal add agents params
-        self.n_samples_per = 15
+        self.n_samples_per = 30
 
         # For add_agent_near only: Neighboring agents
         self.neighbors = None
@@ -97,7 +97,7 @@ class AddAgent:
     def set_neighbors(self,neighbors):
         self.neighbors = neighbors
 
-    def add_agent_at(self,pos,return_all=False, factor_comm=0.7, factor_dist=0.7):
+    def add_agent_at(self,pos,return_all=False, factor_comm=0.7, factor_dist=0.5):
         '''
         Main function for add agent base strategy. Adds a new agent at the base.
         '''
