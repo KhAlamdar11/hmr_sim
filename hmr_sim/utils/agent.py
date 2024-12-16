@@ -116,7 +116,7 @@ class Agent:
                 self.state[:2] = proposed_position
 
             element = deepcopy(self.state[:2])        
-            # self.update_path_history(element)
+            self.update_path_history(element)
 
 
         

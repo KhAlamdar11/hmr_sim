@@ -103,7 +103,7 @@ class SwarmRenderer:
             if self.agent_markers[i] is None:
                 marker, = self.ax.plot(
                     [agent.state[0]], [agent.state[1]], style['marker'],
-                    mfc=color, mec='black', markersize=15, zorder=3
+                    mfc=color, mec='black', markersize=20, zorder=3
                 )
                 self.agent_markers[i] = marker
             else:
@@ -122,7 +122,7 @@ class SwarmRenderer:
             for j, pos_j in enumerate(positions):
                 if adjacency_matrix[i, j]:
                     line, = self.ax.plot([pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]],
-                                         'k-', zorder=1, alpha=0.1, linewidth=4)
+                                         'k-', zorder=1, alpha=0.1, linewidth=2.5)
                     self.adjacency_lines.append(line)
 
     def update_paths(self):
@@ -156,17 +156,17 @@ class SwarmRenderer:
                     self.old_paths[i].set_data(old_path_x, old_path_y)
                 else:
                     old_path_line, = self.ax.plot(
-                        old_path_x, old_path_y, color='blue', linestyle='--', linewidth=2.0, alpha=0.3, zorder=1
+                        old_path_x, old_path_y, color='blue', linestyle='--', linewidth=3.0, alpha=0.4, zorder=1
                     )
                     self.old_paths[i] = old_path_line
 
-                if (len(agent.old_path) + 2) % 6 == 0: 
+                if len(agent.old_path) % 6 == 0: 
                     dx = old_path_x[-1] - old_path_x[-2]
                     dy = old_path_y[-1] - old_path_y[-2]
 
                     self.ax.quiver(
                         old_path_x[-2], old_path_y[-2], dx, dy,
-                        angles='xy', scale_units='xy', scale=0.9, color='blue', alpha=0.05, zorder=2
+                        angles='xy', scale_units='xy', scale=0.6, color='blue', alpha=0.05, zorder=2
                     )
 
 

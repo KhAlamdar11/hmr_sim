@@ -10,8 +10,8 @@ vis_radius: 3.0
 dt: 0.1
 
 agent_config:
-  2:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
-    num_agents: 8    
+  1:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+    num_agents: 12    
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
     init_position: None     # Spawn agents at predefined positions (list of lists)
@@ -22,7 +22,7 @@ agent_config:
     speed: 2.0
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
-  1:
+  0:
     num_agents: 1
     controller_type: do_not_move
     obstacle_avoidance: 0
@@ -43,8 +43,8 @@ agent_config:
         major_radius: 2.0
     sensor_radius: 7.0
     obs_radius: 0.75
-  0:
-    num_agents: 2
+  2:
+    num_agents: 4
     controller_type: go_to_goal
     obstacle_avoidance: 0
     init_position: None
@@ -53,13 +53,14 @@ agent_config:
       origin: [0.0,0.0]
       major_radius: 0.01
     speed: 0.03
-    goals: [[3.5,3.5],[-3.5,3.5]]
+    goals: [[3.5,3.5],[-3.5,3.5],[3.5,-3.5],[-3.5,-3.5]]
     sensor_radius: 7.0
     obs_radius: 0.75
 
 vis_params:
   render_type: nav               # rendering mode (nav, explore)
   show_old_path: 10000       # show the history of state
+  plot_limits: None
 
 
 # Add agent config for centralized swarm class
