@@ -6,6 +6,8 @@ from hmr_sim.utils.utils import get_curve
 from hmr_sim.utils.rrt import RRT
 from hmr_sim.utils.add_agents import AddAgent
 from hmr_sim.utils.lattice_generation import gen_lattice
+from scipy.linalg import eig
+from numpy.linalg import inv
 
 class Swarm:
     """Manages a swarm of heterogeneous agents."""
@@ -108,6 +110,9 @@ class Swarm:
         self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
         self.add_agent_already_added = []
 
+        self.fiedler_list = []
+        self.n_agents_list = []
+
     def get_states(self):
         return np.array([agent.state for agent in self.agents])
 
@@ -142,7 +147,6 @@ class Swarm:
 
         for i in range(num_agents):
             for j in range(i + 1, num_agents):  # Check only upper triangular to avoid redundancy
-                print(positions[i], positions[j])
                 distance = euclidean(positions[i], positions[j])
                 if distance <= self.vis_radius:
                     if edge_osbtacle[i] and edge_osbtacle[j]:
@@ -182,6 +186,7 @@ class Swarm:
 
     def run_controllers(self):
         self.update_neighbors()
+        # self.save_fiedler_value()
 
         to_remove = []
         to_add = []
@@ -248,3 +253,27 @@ class Swarm:
                 print(f'Neighbors ID {neigh.agent_id} of type {neigh.type} at {neigh.get_pos()}')
             print('-----------------------------------')
             
+
+    def save_fiedler_value(self):
+        A = self.compute_adjacency_matrix()
+        D = self.degree(A)
+        if np.all(np.diag(D) != 0):
+            L = D - A
+            eValues, _ = eig(L)
+            eValues = np.sort(eValues.real)
+            ac = eValues[1]
+        else:
+            ac = 0
+
+        self.fiedler_list.append(ac)
+        self.n_agents_list.append(self.total_agents)
+        
+        # Save the two lists as .npy files
+        np.save("fiedler_list.npy", np.array(self.fiedler_list))
+        np.save("n_agents_list.npy", np.array(self.n_agents_list))
+
+    def degree(self, A):
+        """Compute the degree matrix of adjacency matrix A."""
+        return np.diag(np.sum(A, axis=1))
+
+        

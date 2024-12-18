@@ -3,7 +3,7 @@ env: Hetro-v0  # Name of the environment
 map_name: map1  # Map name used in the environment
 
 # Visibility radius of each agent
-vis_radius: 1.6
+vis_radius: 1.2
 # Time step for the simulation
 dt: 0.1
 
@@ -36,7 +36,7 @@ agent_config:
   #   obs_radius: 0.75
   #   goals: [[-3.5,3.5]]
   1:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
-    num_agents: 8
+    num_agents: 12
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
     init_position: None     # Spawn agents at predefined positions (list of lists)
@@ -52,7 +52,7 @@ agent_config:
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
     # Battery related variables
-    init_battery: [0.17,0.17,0.17,0.75,0.7,0.775,0.8,0.825,0.85,0.875] # autofill to fill batteries linearly between 0.5 and 1.0
+    init_battery: [0.17,0.17,0.17,0.75,0.7,0.775,0.8,0.825,0.85,0.875,0.8,0.825,0.85,0.875] # autofill to fill batteries linearly between 0.5 and 1.0
     # [0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65]
     battery_decay_rate: 0.0002
     battery_threshold: 0.11
@@ -60,9 +60,9 @@ agent_config:
 
 # Add agent config for centralized swarm class
 add_agent_params:
-  mode: add_agent_base        # add_agent_base, add_agent_near
+  mode: add_agent_base       # add_agent_base, add_agent_near
   criterion: min_n_agents     # min_n_agents, min_fiedler
-  critical_value: 10         # value of the criterian chosen
+  critical_value: 0         # value of the criterian chosen
   battery_of_concern: 0.13
   agent_type_to_add: 1
   agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added

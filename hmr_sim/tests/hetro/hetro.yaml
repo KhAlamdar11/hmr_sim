@@ -32,15 +32,15 @@ agent_config:
       # origin: [0.0,0.0]
       # major_radius: 0.5
     speed: 0.3
-    paths:      # Must match number of agents
-      0:
-        shape: Square
-        origin: [0.0, 0.0]
-        side: 2.0
-      1:
-        shape: Elipse
-        origin: [0.0, 0.0]
-        major_radius: 2.0
+    # paths:      # Must match number of agents
+    #   0:
+    #     shape: Square
+    #     origin: [0.0, 0.0]
+    #     side: 2.0
+    #   1:
+    #     shape: Elipse
+    #     origin: [0.0, 0.0]
+    #     major_radius: 2.0
     sensor_radius: 7.0
     obs_radius: 0.75
   2:

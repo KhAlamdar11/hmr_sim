@@ -15,7 +15,6 @@ def get_curve(formation, num_points=5, speed=None, dt=None):
     Returns:
         np.ndarray: Array of positions as [[x, y], [x, y], ...].
     """
-    print(formation)
     formation_type = formation['shape'].lower()
     origin = np.array(formation['origin'])  # Extract the origin
     
