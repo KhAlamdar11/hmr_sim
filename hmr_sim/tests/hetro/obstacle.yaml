@@ -1,0 +1,89 @@
+# Environment Configuration
+env: Hetro-v0  # Name of the environment
+map_name: map2  # Map name used in the environment
+
+# rendering mode (nav, explore)
+render: nav
+# Visibility radius of each agent
+vis_radius: 2.5
+# Time step for the simulation
+dt: 0.1
+
+agent_config:
+  1:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+    num_agents: 16    
+    controller_type: connectivity_controller
+    obstacle_avoidance: 1   # Flag to enable or disable obstacle avoidance
+    init_position: None     # Spawn agents at predefined positions (list of lists)
+    init_formation:         # Spawn agents as a formation (see options in documentation)
+      shape: Circle
+      origin: [-3.5,3.5]
+      radius: 1.0
+    speed: 4.0
+    sensor_radius: 7.0      # Sensor readius for mapping
+    obs_radius: 0.75        # Distance at which obstacle avoidance activates
+  0:
+    num_agents: 1
+    controller_type: do_not_move
+    obstacle_avoidance: 0
+    init_position: [[-3.5,3.5]]
+    init_formation: None
+      # shape: Elipse
+      # origin: [0.0,0.0]
+      # major_radius: 0.5
+    speed: 0.3
+    # paths:      # Must match number of agents
+    #   0:
+    #     shape: Square
+    #     origin: [0.0, 0.0]
+    #     side: 2.0
+    #   1:
+    #     shape: Elipse
+    #     origin: [0.0, 0.0]
+    #     major_radius: 2.0
+    sensor_radius: 7.0
+    obs_radius: 0.75
+  2:
+    num_agents: 2
+    controller_type: go_to_goal
+    obstacle_avoidance: 0
+    init_position: [[-3.5,3.5],[-3.5,3.5]]
+    init_formation:
+      # shape: Elipse
+      # origin: [0.0,0.0]
+      # major_radius: 0.01
+    speed: 0.02
+    goals: [[3.5,3.5],[0.43,-3.5]]
+    sensor_radius: 7.0
+    obs_radius: 0.75
+
+vis_params:
+  render_type: nav               # rendering mode (nav, explore)
+  show_old_path: 10000       # show the history of state
+  plot_limits: None
+
+
+# Add agent config for centralized swarm class
+add_agent_params:
+  mode: add_agent_base        # add_agent_base, add_agent_near
+  criterion: min_n_agents     # min_n_agents, min_fiedler
+  critical_value: 10         # value of the criterian chosen
+  battery_of_concern: 0.16
+  agent_type_to_add: 1
+  agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
+
+
+# ___________________ Controller Parameters ___________________
+# Parameters for the connectivity_controller
+controller_params:
+  delta: 0.2  # Variance control for connectivity controller
+  repelThreshold: 0.6  # Threshold ratio for repulsion
+  battery_aware: 0  # Whether the controller is battery aware (0: No, 1: Yes)
+  normalized: 0  # Whether the values are normalized (0: No, 1: Yes)
+  epsilon: 0.01  # Small constant for stability
+  gainConnectivity: 1.0  # Gain for connectivity control
+  gainRepel: 0.06  # Gain for repulsion
+  unweighted: 1  # Use unweighted control (0: No, 1: Yes)
+  v_max: 0.3  # Maximum velocity of the agents
+  critical_battery_level: 0.14  # Threshold for critical battery level
+  tau: 0.01  # Time constant for controller

@@ -1,6 +1,7 @@
 from os import path
 import sys
 import numpy as np
+import time
 import random
 import configparser
 import gymnasium as gym  # Ensure updated Gymnasium import
@@ -26,19 +27,20 @@ def run(args):
     done = False
     t = 0
 
+    start_time = time.time()  # Record start time of the iteration
+    # elapsed_time = time.time() - start_time  # Measure time taken by the render call
+
+    # if remaining_time > 0:
+    #     time.sleep(remaining_time)  # Sleep for the remaining time
+
     while not done:
-        # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
-        # if t < 100:
-        # try:
-        # if t > 30 and t < 100:
-        # if t > 30:
+        # start_time = time.time()
         env.unwrapped.controller()
-        # obs, reward, terminated, truncated, info = env.step(None)
-        # done = terminated or truncated
-        # except:
-        #     pass
-        # Render the environment
+        # print(f"Controller time: {time.time()-start_time}")
+
+        # start_time = time.time()
         env.render()
+        # print(f"Render time: {time.time()-start_time}")
 
         # Print debug info (optional)
         # if t % 10 == 0:  # Log every 10 steps

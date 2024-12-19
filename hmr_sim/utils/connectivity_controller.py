@@ -71,8 +71,8 @@ class ConnectivityController:
 
             # Accumulate control contributions
             if agent.type == 'Robot' or agent.type == 2:
-                control_vector[0] += k * dx * 2 
-                control_vector[1] += k * dy * 2
+                control_vector[0] += k * dx * 4
+                control_vector[1] += k * dy * 4
             else:
                 control_vector[0] += k * dx 
                 control_vector[1] += k * dy

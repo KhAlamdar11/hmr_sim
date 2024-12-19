@@ -3,7 +3,7 @@ import numpy as np
 import json
 from gymnasium import spaces
 import ast
-
+import time
 from hmr_sim.envs.hetro.base import BaseEnv
 
 from hmr_sim.utils.hero.swarm3d import Swarm3D
@@ -36,12 +36,7 @@ class HeroV0(BaseEnv):
                                         'is_line_of_sight_free': self.is_line_of_sight_free,
                                         'get_frontier_goal': self.get_frontier_goal})
 
-        self.render_func = SwarmRenderer3D(render_type=self.render_type,
-                                         env=self,
-                                         swarm=self.swarm, occupancy_grid=self.occupancy_grid, 
-                                        origin=self.origin, resolution=self.resolution, 
-                                        vis_radius=self.vis_radius, 
-                                        plot_limits = config.get('vis_params')['plot_limits'] if config.get('vis_params')['plot_limits'] != 'None' else None)
+        self.render_func = SwarmRenderer3D(swarm=self.swarm)
             
         
         self.observation_space = spaces.Box(
@@ -53,7 +48,13 @@ class HeroV0(BaseEnv):
 
     def render(self, mode='human'):
         self.render_func.render()
+        start_time = time.time()
+        # self.render_func.render()
+        elapsed_time = time.time() - start_time
+        remaining_time = self.dt - elapsed_time
 
+        if remaining_time > 0:
+            time.sleep(remaining_time)
 
     def parse_config_entry(self, entry, entry_name, type='none'):
         """Parse and validate a configuration entry."""

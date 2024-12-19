@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-np.random.seed(12)
-random.seed(12)
+np.random.seed(14)
+random.seed(14)
 
 class Node:
     def __init__(self, position):
