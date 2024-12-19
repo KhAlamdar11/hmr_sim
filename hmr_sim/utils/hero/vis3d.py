@@ -99,22 +99,56 @@ class SwarmRenderer3D:
         self.markers.append(sphere)
 
     def update_markers(self):
-        """Efficiently update markers."""
+        """Efficiently update markers with spheres for different agent types."""
         positions = np.array([agent.state[:3] for agent in self.swarm.agents])
+        types = [agent.type for agent in self.swarm.agents]
 
+        # Colors for each type
+        type_colors = {
+            "UAV": (0.2, 0.6, 1.0, 1.0),  # Blue for UAV
+            "Robot": (0.0, 1.0, 0.0, 1.0),  # Green for Robot
+            "Base": (1.0, 0.0, 0.0, 1.0),  # Red for Base
+        }
+
+        # Ensure we have the same number of spheres as agents
         if len(self.markers) != len(positions):
-            # If the number of agents changes, recreate markers
+            # Remove old markers if the count changes
             for marker in self.markers:
                 marker.parent = None
             self.markers.clear()
 
-            for position in positions:
-                self.add_marker(position)
+            # Create new spheres for each agent
+            for i, position in enumerate(positions):
+                sphere = scene.visuals.Sphere(
+                    radius=0.3,
+                    method='latitude',
+                    color=type_colors[types[i]],  # Color based on type
+                    shading='smooth',  # Add smooth shading
+                    parent=self.view.scene,
+                )
+                sphere.transform = scene.transforms.MatrixTransform()
+                sphere.transform.translate(position)
+                self.markers.append(sphere)
         else:
             # Update positions of existing markers
             for i, marker in enumerate(self.markers):
                 marker.transform.reset()  # Reset transform
                 marker.transform.translate(positions[i])  # Update position
+                # Recreate the sphere to update the color (no direct color update in VisPy)
+                marker.parent = None  # Remove old marker
+                sphere = scene.visuals.Sphere(
+                    radius=0.3,
+                    method='latitude',
+                    color=type_colors[types[i]],  # Update color
+                    shading='smooth',
+                    parent=self.view.scene,
+                )
+                sphere.transform = scene.transforms.MatrixTransform()
+                sphere.transform.translate(positions[i])
+                self.markers[i] = sphere
+
+
+
 
     def update_adjacency_lines(self):
         """Update or draw adjacency lines in a single batch."""

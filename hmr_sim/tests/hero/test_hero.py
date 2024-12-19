@@ -22,6 +22,8 @@ def run(args):
     random.seed(seed)
     np.random.seed(seed)
 
+    dt = args.get('dt')
+
     # Environment reset
     obs, _ = env.reset()
     done = False
@@ -34,19 +36,20 @@ def run(args):
     #     time.sleep(remaining_time)  # Sleep for the remaining time
 
     while not done:
-        # start_time = time.time()
-        env.unwrapped.controller()
-        # print(f"Controller time: {time.time()-start_time}")
+        if t > 1:
+            # start_time = time.time()
+            env.unwrapped.controller()
+            # print(f"Controller time: {time.time()-start_time}")
+            # start_time = time.time()            # print(f"Render time: {time.time()-start_time}")
 
-        # start_time = time.time()
+            # Print debug info (optional)
+            # if t % 10 == 0:  # Log every 10 steps
+            #     print(f"Step {t}: Reward: {reward}, Done: {done}")
         env.render()
-        # print(f"Render time: {time.time()-start_time}")
+        if t%1.0:
+            print(t)
 
-        # Print debug info (optional)
-        # if t % 10 == 0:  # Log every 10 steps
-        #     print(f"Step {t}: Reward: {reward}, Done: {done}")
-
-        t+=1
+        t+=dt
 
     print("Simulation ended.")
 

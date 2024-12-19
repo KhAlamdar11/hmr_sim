@@ -58,6 +58,8 @@ class HeroV0(BaseEnv):
         if remaining_time > 0:
             time.sleep(remaining_time)
 
+        # print(f"REMAINUING TIME {remaining_time}")
+
     def parse_config_entry(self, entry, entry_name, type='none'):
         """Parse and validate a configuration entry."""
         try:
