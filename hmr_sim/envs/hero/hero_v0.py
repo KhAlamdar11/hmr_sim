@@ -36,7 +36,9 @@ class HeroV0(BaseEnv):
                                         'is_line_of_sight_free': self.is_line_of_sight_free,
                                         'get_frontier_goal': self.get_frontier_goal})
 
-        self.render_func = SwarmRenderer3D(swarm=self.swarm)
+        self.render_func = SwarmRenderer3D(swarm=self.swarm,occupancy_grid={'map':self.occupancy_grid, 
+                                                                            'origin': self.origin, 
+                                                                            'res': self.resolution})
             
         
         self.observation_space = spaces.Box(

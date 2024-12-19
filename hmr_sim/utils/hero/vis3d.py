@@ -3,14 +3,16 @@ import numpy as np
 import time
 
 class SwarmRenderer3D:
-    def __init__(self, swarm):
+    def __init__(self, swarm, occupancy_grid=None):
         """
-        Initialize the 3D renderer for the swarm.
+        Initialize the 3D renderer for the swarm and occupancy grid.
 
         Args:
             swarm: An object containing agents with positions and adjacency matrix.
+            occupancy_grid: A dictionary containing 'map' (numpy array), 'res' (float), and 'origin' (list).
         """
         self.swarm = swarm
+        self.occupancy_grid = occupancy_grid
 
         # Create a VisPy canvas
         self.canvas = scene.SceneCanvas(keys='interactive', show=True, bgcolor='black')
@@ -24,6 +26,57 @@ class SwarmRenderer3D:
         # Store visuals
         self.markers = []  # List to store marker visuals
         self.adjacency_lines = []  # List to store adjacency lines
+
+        # Render the occupancy grid if provided
+        if self.occupancy_grid:
+            self.render_occupancy_grid()
+
+
+    def render_occupancy_grid(self):
+        """Render the occupancy grid as a static surface at height z=0."""
+        occupancy_map = self.occupancy_grid['map']
+        resolution = self.occupancy_grid['res']
+        origin = self.occupancy_grid['origin']  # Ensure origin is a list or tuple
+
+        # Generate grid points
+        rows, cols = occupancy_map.shape
+        x = np.linspace(origin['x'], origin['y'] + cols * resolution, cols)
+        y = np.linspace(origin['x'], origin['y'] + rows * resolution, rows)
+        x, y = np.meshgrid(x, y)
+        z = np.zeros_like(x)  # Fixed height at z=0
+
+        # Flatten grid points
+        vertices = np.c_[x.ravel(), y.ravel(), z.ravel()]
+
+        # Create grid faces (triangles)
+        faces = []
+        for i in range(rows - 1):
+            for j in range(cols - 1):
+                top_left = i * cols + j
+                top_right = top_left + 1
+                bottom_left = (i + 1) * cols + j
+                bottom_right = bottom_left + 1
+
+                # Two triangles per square
+                faces.append([top_left, bottom_left, top_right])
+                faces.append([bottom_left, bottom_right, top_right])
+        faces = np.array(faces)
+
+        # Map occupancy values to colors
+        colors = np.zeros((vertices.shape[0], 4))  # RGBA colors
+        for i, value in enumerate(occupancy_map.ravel()):
+            if value == 1:  # Occupied
+                colors[i] = [0.0, 0.0, 0.0, 1.0]  # Black
+            elif value == 0.5:  # Partially occupied
+                colors[i] = [0.5, 0.5, 0.5, 1.0]  # Grey
+            else:  # Free
+                colors[i] = [1.0, 1.0, 1.0, 1.0]  # White
+
+        # Create the mesh for the occupancy grid
+        grid_mesh = scene.visuals.Mesh(vertices=vertices, faces=faces, vertex_colors=colors, parent=self.view.scene)
+
+
+
 
     def add_marker(self, position, radius=0.3, color=(0.2, 0.6, 1.0, 1.0)):
         """
@@ -63,7 +116,6 @@ class SwarmRenderer3D:
                 marker.transform.reset()  # Reset transform
                 marker.transform.translate(positions[i])  # Update position
 
-
     def update_adjacency_lines(self):
         """Update or draw adjacency lines in a single batch."""
         adjacency_matrix = self.swarm.compute_adjacency_matrix()
@@ -92,67 +144,14 @@ class SwarmRenderer3D:
             self.batched_lines.parent = None  # Remove from scene
             del self.batched_lines
 
-
-
-
-
-
     def update_scene(self):
-        start_time = time.time()
+        """Update the markers and adjacency lines."""
         self.update_markers()
-        # print(f"Update Markers Time: {time.time() - start_time:.6f}s")
-
-        start_time = time.time()
         self.update_adjacency_lines()
-        # print(f"Update Adjacency Lines Time: {time.time() - start_time:.6f}s")
-
         self.canvas.update()
 
-
     def render(self):
-        # start = time.time()
+        """Render the scene."""
         self.update_scene()
-        # update_time = time.time() - start
-
-        # start = time.time()
         app.process_events()
-        # process_time = time.time() - start
 
-        # print(f"Update Time: {update_time:.6f}s, Process Time: {process_time:.6f}s")
-
-
-
-
-
-# Mock swarm class for demonstration
-# class MockSwarm:
-#     class Agent:
-#         def __init__(self, position):
-#             self.state = position
-
-#     def __init__(self):
-#         self.agents = [self.Agent((np.random.uniform(-5, 5), np.random.uniform(-5, 5), np.random.uniform(-5, 5))) for _ in range(10)]
-
-#     def compute_adjacency_matrix(self):
-#         """Create a mock adjacency matrix based on distance."""
-#         num_agents = len(self.agents)
-#         adjacency_matrix = np.zeros((num_agents, num_agents), dtype=bool)
-#         positions = np.array([agent.state[:3] for agent in self.agents])
-#         for i in range(num_agents):
-#             for j in range(i + 1, num_agents):
-#                 distance = np.linalg.norm(positions[i] - positions[j])
-#                 if distance < 3.0:  # Connect agents within a threshold distance
-#                     adjacency_matrix[i, j] = adjacency_matrix[j, i] = True
-#         return adjacency_matrix
-
-
-# Example usage
-# if __name__ == "__main__":
-#     swarm = MockSwarm()
-#     renderer = SwarmRenderer3D(swarm)
-
-#     # Simulate Gym-like render calls
-#     for _ in range(200):
-#         swarm.agents = [MockSwarm.Agent((np.random.uniform(-5, 5), np.random.uniform(-5, 5), np.random.uniform(-5, 5))) for _ in range(30)]
-#         renderer.render()
-        # time.sleep(0.03)  # Simulate frame delay
