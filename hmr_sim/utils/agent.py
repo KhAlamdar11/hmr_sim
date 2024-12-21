@@ -107,6 +107,7 @@ class Agent:
             proposed_position = self.state[:2] + self.speed * v * self.dt
 
             # Adjust position using obstacle avoidance
+            # print(is_)
             if self.is_obstacle_avoidance:
                 adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
                                                             is_free_path_fn=swarm.is_line_of_sight_free_fn)

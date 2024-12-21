@@ -1,0 +1,83 @@
+# Environment Configuration
+env: Hetro-v0  # Name of the environment
+map_name: map1  # Map name used in the environment
+
+# Visibility radius of each agent
+vis_radius: 1.2
+# Time step for the simulation
+dt: 0.1
+
+
+agent_config:
+  0:
+    num_agents: 2
+    controller_type: do_not_move
+    obstacle_avoidance: 0
+    init_position: [[-1.725,0.0],[1.725,0.0]]
+    speed: 0.8
+    sensor_radius: 7.0
+    obs_radius: 0.75
+  # 1:
+  #   num_agents: 1
+  #   controller_type: do_not_move
+  #   obstacle_avoidance: 0
+  #   init_position: [[3.5,0.0]]
+  #   # init_formation:
+  #   #   shape: Elipse
+  #   #   origin: [0.0,0.0]
+  #   #   major_radius: 0.5
+  #   speed: 0.03
+  #   # paths:      # Must match number of agents
+  #   #   0:
+  #   #     shape: Elipse
+  #   #     origin: [0.0, 0.0]
+  #   #     major_radius: 4.5
+  #   sensor_radius: 7.0
+  #   obs_radius: 0.75
+  #   goals: [[-3.5,3.5]]
+  1:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
+    num_agents: 50
+    controller_type: connectivity_controller
+    obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
+    init_position: [[-1.7827004732881084, 1.214366823841517], [-1.4463218774905595, 2.3230198439412537], [-0.5960329651190209, -2.920235330018742], [-0.6829589621788322, -1.394378601631009], [1.3378194167812043, 2.273022297589667], [1.1471828217048168, -2.3359903505825335], [2.2872518206362096, 1.1339323377896064], [0.13518413315093777, -0.8153140528589072], [0.009422365986745208, 1.9915484259898761], [2.8871814657396455, 0.4606624401330079], [1.4298733282202305, 0.15776860501859466], [-1.3051812374569758, 0.7261174765152534], [-0.4016943253689382, 1.328070591755001], [0.0035594839123538947, 0.4495800316461298], [0.3457683556920347, 2.5107488463199146], [0.9414961428731901, 0.9215189306702333], [-0.2254549984060601, 2.8411747193472796], [1.5161512290039743, 1.4042832951500965], [-0.8107674043442264, -0.6120053966239559], [-1.4124278795432423, -0.46263707240017327], [-0.9045124234902064, -2.130238572260775], [1.7445835443855406, -0.6291378802385981], [-2.1181273316972558, -1.6840288756412338], [1.6786460315424925, -1.5181978867621488], [2.433780098335653, -0.2988772625328116], [0.7796071110919838, -1.59284717910307], [-2.5698148969960997, 0.6446471735074591], [0.9024474128478805, 1.7037847851457364], [-0.9065288640994532, 0.2716165278065867], [-1.7322032856634442, -2.1644650295126513], [2.114804855963042, 0.23998407315726403], [-2.6857336750599052, -0.22561726696266463], [1.140826377042029, -0.38925125650811826], [2.095222016366811, 1.8403772790650728], [-2.061713607600335, 1.7614496137276827], [-2.130810949176025, -0.47182258005281896], [2.596171212973657, -1.1018901422354483], [1.6839102511633128, 0.7418894151838812], [0.5555211165936198, -2.545133784332563], [-1.7660107164180454, -1.0237537042744151], [2.3645238988273416, -1.6948279593632802], [-0.6492663188975029, 2.31240470613466], [0.21209686116725188, -0.19084542411796082], [-2.0254701904314603, 0.21693840840532022], [-1.3048007613446917, -1.6608810312368705], [-0.18500505584277477, -1.9088999862401805], [0.9955915547863595, 2.772753530700628], [0.7413842012058641, -0.8739614059000022], [0.37035604475053896, 1.2281057301897678], [1.7679117167674132, -2.3021739371856924]]
+    init_formation: None        # Spawn agents as a formation (see options in documentation)
+    speed: 5.0
+    sensor_radius: 7.0      # Sensor readius for mapping
+    obs_radius: 0.75        # Distance at which obstacle avoidance activates
+    # Battery related variables
+    init_battery: autofill
+    battery_decay_rate: 0.0002
+    battery_threshold: 0.11
+
+
+# Add agent config for centralized swarm class
+add_agent_params:
+  mode: add_agent_base       # add_agent_base, add_agent_near
+  criterion: min_n_agents     # min_n_agents, min_fiedler
+  critical_value: 0         # value of the criterian chosen
+  battery_of_concern: 0.13
+  agent_type_to_add: 1
+  agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
+
+
+vis_params:
+  render_type: nav               # rendering mode (nav, explore)
+  show_old_path: 10000           # show the history of states/past trajectory
+  plot_limits: [-5, 5, -5, 5]  # Put None if you want the whole map to be displayed
+
+
+# ___________________ Controller Parameters ___________________
+# Parameters for the connectivity_controller
+controller_params:
+  delta: 0.2  # Variance control for connectivity controller
+  repelThreshold: 0.8  # Threshold ratio for repulsion
+  battery_aware: 0  # Whether the controller is battery aware (0: No, 1: Yes)
+  normalized: 0  # Whether the values are normalized (0: No, 1: Yes)
+  epsilon: 0.01  # Small constant for stability
+  gainConnectivity: 1.0  # Gain for connectivity control
+  gainRepel: 0.15  # Gain for repulsion
+  unweighted: 1  # Use unweighted control (0: No, 1: Yes)
+  v_max: 0.3  # Maximum velocity of the agents
+  critical_battery_level: 0.11  # Threshold for critical battery level
+  tau: 0.01  # Time constant for controller
+

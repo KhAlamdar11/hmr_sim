@@ -26,6 +26,9 @@ def run(args):
     done = False
     t = 0
 
+    env.render()
+
+
     while not done:
         # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
         # if t < 100:
@@ -38,7 +41,10 @@ def run(args):
         # except:
         #     pass
         # Render the environment
+
         env.render()
+
+        # print(t)
 
         # Print debug info (optional)
         # if t % 10 == 0:  # Log every 10 steps

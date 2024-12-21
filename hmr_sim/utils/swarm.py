@@ -12,7 +12,7 @@ from numpy.linalg import inv
 class Swarm:
     """Manages a swarm of heterogeneous agents."""
 
-    def __init__(self, env, config, map_resolution, map_handlers):
+    def __init__(self, env, config, map_resolution, map_handlers,is_initialize_swarm=True):
         
         self.env = env
 
@@ -39,76 +39,75 @@ class Swarm:
         self.update_exploration_map_fn = map_handlers['update_exploration_map']
         self.get_frontier_goal_fn = map_handlers['get_frontier_goal']
 
+        self.agents = []
 
         #________________________  instance definitions  ________________________
-        self.agents = []
-        goals = None
-        path_planner = None
-        paths = []
-        for agent_type in self.agent_config.keys():
-
-            #__________________  Initial position handling  ___________________
-            init_position = self.agent_config[agent_type]['init_position']
-            if init_position == 'None':
-                init_formation = self.agent_config[agent_type]['init_formation']
-                print(f"Using initialization formation: {init_formation}")
-                if init_formation['shape'] != 'lattice':
-                    init_position = get_curve(init_formation, 
-                                            self.agent_config[agent_type]['num_agents'])   
-                else:
-                    start = np.array([0.0,0.0])
-                    end = np.array([3.5,0.0])
-                    init_position = gen_lattice(self.agent_config[agent_type]['num_agents'], 
-                                                self.vis_radius, 
-                                                start, end)
-            
+        if is_initialize_swarm:
             goals = None
             path_planner = None
             paths = []
+            for agent_type in self.agent_config.keys():
+
+                #__________________  Initial position handling  ___________________
+                init_position = self.agent_config[agent_type]['init_position']
+                if init_position == 'None':
+                    init_formation = self.agent_config[agent_type]['init_formation']
+                    print(f"Using initialization formation: {init_formation}")
+                    if init_formation['shape'] != 'lattice':
+                        init_position = get_curve(init_formation, 
+                                                self.agent_config[agent_type]['num_agents'])   
+                    else:
+                        start = np.array([0.0,0.0])
+                        end = np.array([3.5,0.0])
+                        init_position = gen_lattice(self.agent_config[agent_type]['num_agents'], 
+                                                    self.vis_radius, 
+                                                    start, end)
+                
+                goals = None
+                path_planner = None
+                paths = []
 
 
-            if self.agent_config[agent_type]['controller_type'] == 'explore':
-                path_planner = RRT(env)
-            elif self.agent_config[agent_type]['controller_type'] == 'go_to_goal':
-                path_planner = RRT(env)
-                goals = self.agent_config[agent_type]['goals']
-            elif self.agent_config[agent_type]['controller_type'] == 'path_tracker':
-                for path in list(self.agent_config[agent_type]['paths'].values()):
-                    paths.append(get_curve(path, 
-                                            speed=self.agent_config[agent_type]['speed'],
-                                            dt=self.dt))
-            # baterries
-            init_battery = self.agent_config.get(agent_type).get('init_battery', None)
-            if init_battery=='autofill':
-                init_battery = np.linspace(0.2, 0.9, self.agent_config[agent_type]['num_agents'])        
-            battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
-            battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
+                if self.agent_config[agent_type]['controller_type'] == 'explore':
+                    path_planner = RRT(env)
+                elif self.agent_config[agent_type]['controller_type'] == 'go_to_goal':
+                    path_planner = RRT(env)
+                    goals = self.agent_config[agent_type]['goals']
+                elif self.agent_config[agent_type]['controller_type'] == 'path_tracker':
+                    for path in list(self.agent_config[agent_type]['paths'].values()):
+                        paths.append(get_curve(path, 
+                                                speed=self.agent_config[agent_type]['speed'],
+                                                dt=self.dt))
+                # baterries
+                init_battery = self.agent_config.get(agent_type).get('init_battery', None)
+                if init_battery=='autofill':
+                    init_battery = np.linspace(0.16, 0.9, self.agent_config[agent_type]['num_agents'])        
+                battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
+                battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
 
-            for n in range(self.agent_config[agent_type]['num_agents']):
-                self.agents.append(Agent(type = agent_type,
-                                        agent_id = len(self.agents), 
-                                        init_position = init_position[n],
-                                        dt = self.dt, 
-                                        vis_radius = self.vis_radius,
-                                        map_resolution = map_resolution,
-                                        config = self.agent_config[agent_type],
-                                        controller_params = self.controller_params,
-                                        path_planner = path_planner,
-                                        path = paths[n] if paths!=[] else [],
-                                        goal = goals[n] if goals is not None else None,
-                                        init_battery = init_battery[n] if init_battery is not None else 0.5,
-                                        battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
-                                        battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
-                                        show_old_path = env.show_old_path))
+                for n in range(self.agent_config[agent_type]['num_agents']):
+                    self.agents.append(Agent(type = agent_type,
+                                            agent_id = len(self.agents), 
+                                            init_position = init_position[n],
+                                            dt = self.dt, 
+                                            vis_radius = self.vis_radius,
+                                            map_resolution = map_resolution,
+                                            config = self.agent_config[agent_type],
+                                            controller_params = self.controller_params,
+                                            path_planner = path_planner,
+                                            path = paths[n] if paths!=[] else [],
+                                            goal = goals[n] if goals is not None else None,
+                                            init_battery = init_battery[n] if init_battery is not None else 0.5,
+                                            battery_decay_rate = battery_decay_rate if battery_decay_rate is not None else None,
+                                            battery_threshold = battery_threshold if battery_threshold is not None else 0.0,
+                                            show_old_path = env.show_old_path))
 
 
         #________________________  Agent Additions  ________________________
-        # self.add_agent_criteria = 'min_n_agents'
-        # self.min_n_agents = 14 + 2
-        # self.add_agent_mode = 'add_agent_base'
-        self.add_agent_params = config.get('add_agent_params')
-        self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
-        self.add_agent_already_added = []
+        if self.agents != []:
+            self.add_agent_params = config.get('add_agent_params')
+            self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
+            self.add_agent_already_added = []
 
         self.fiedler_list = []
         self.n_agents_list = []
@@ -141,10 +140,9 @@ class Swarm:
             np.ndarray: Adjacency matrix indicating connections between agents.
         """
         positions = np.array([agent.state[:2] for agent in self.agents])
-        edge_osbtacle = np.array([agent.obstacle_avoidance for agent in self.agents])
+        edge_osbtacle = np.array([agent.is_obstacle_avoidance for agent in self.agents])
         num_agents = len(self.agents)
         adjacency_matrix = np.zeros((num_agents, num_agents), dtype=int)
-
         for i in range(num_agents):
             for j in range(i + 1, num_agents):  # Check only upper triangular to avoid redundancy
                 distance = euclidean(positions[i], positions[j])
@@ -257,6 +255,7 @@ class Swarm:
     def save_fiedler_value(self):
         A = self.compute_adjacency_matrix()
         D = self.degree(A)
+                
         if np.all(np.diag(D) != 0):
             L = D - A
             eValues, _ = eig(L)
@@ -271,6 +270,9 @@ class Swarm:
         # Save the two lists as .npy files
         np.save("fiedler_list.npy", np.array(self.fiedler_list))
         np.save("n_agents_list.npy", np.array(self.n_agents_list))
+        np.save(f"/As/A_{int(self.total_agents)}.npy", A)
+
+
 
     def degree(self, A):
         """Compute the degree matrix of adjacency matrix A."""

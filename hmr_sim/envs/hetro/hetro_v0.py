@@ -17,13 +17,14 @@ class HetroV0(BaseEnv):
     def __init__(self, config):
         super().__init__(config)
 
-        self.num_agents = config.get('num_agents', [])
+        self.start = True
 
         self.agent_config = config.get('agent_config')
 
         self.vis_radius = config.get('vis_radius')
 
         self.total_agents = sum(inner_dict["num_agents"] for inner_dict in self.agent_config.values())
+        self.old_total_agents = self.total_agents
 
         self.render_type = config.get('vis_params')['render_type']
         self.show_old_path = config.get('vis_params')['show_old_path']
@@ -53,21 +54,12 @@ class HetroV0(BaseEnv):
         
 
     def render(self, mode='human'):
+
+        # if self.old_total_agents > self.swarm.total_agents:
+        #     if self.swarm.total_agents % 2 == 0: 
         self.render_func.render()
+        #         self.old_total_agents = self.swarm.total_agents
+        # elif self.start:
+        #     self.render_func.render()
+        #     self.start = False
 
-
-    def parse_config_entry(self, entry, entry_name, type='none'):
-        """Parse and validate a configuration entry."""
-        try:
-            # Safely evaluate Python-style literals like lists or dictionaries
-            parsed_entry = ast.literal_eval(entry)
-            if type == "array":
-                return np.array(parsed_entry)
-            elif type == "dict":
-                if not isinstance(parsed_entry, dict):
-                    raise ValueError(f"{entry_name} must be a dictionary.")
-                # Optionally convert keys to integers if needed
-                return {int(k): v for k, v in parsed_entry.items()}
-            return parsed_entry
-        except (ValueError, SyntaxError):
-            raise ValueError(f"Invalid format for {entry_name} in config.")
