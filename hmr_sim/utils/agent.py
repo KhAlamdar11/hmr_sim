@@ -1,19 +1,22 @@
-import numpy as np
-from hmr_sim.utils.connectivity_controller import ConnectivityController
 import math
 from collections import defaultdict, deque
 from copy import deepcopy
 
+import numpy as np
+
+from hmr_sim.utils.connectivity_controller import ConnectivityController
+
+
 class Agent:
     '''Represents a single independent.'''
-    
+
     def __init__(self, type, agent_id, init_position,
-                 dt, vis_radius, map_resolution, 
+                 dt, vis_radius, map_resolution,
                  config, controller_params, path_planner=None,
-                 path = None, goal = None, init_battery = None, 
-                 battery_decay_rate = None, battery_threshold=None,
+                 path=None, goal=None, init_battery=None,
+                 battery_decay_rate=None, battery_threshold=None,
                  show_old_path=0):
-        
+
         # Base params
         self.type = type
         self.agent_id = agent_id
@@ -21,7 +24,6 @@ class Agent:
         self.vis_radius = vis_radius
         self.map_resolution = map_resolution
         self.mode = 'active'
-
 
         # Config params
         self.is_obstacle_avoidance = config['obstacle_avoidance']
@@ -35,7 +37,7 @@ class Agent:
         self.path = None
         self.path_idx = 0
         self.path_len = 0
-        self.neighbors = None   
+        self.neighbors = None
 
         # Battery Variables
         self.battery = init_battery if init_battery is not None else 1.0
@@ -43,8 +45,8 @@ class Agent:
         self.battery_threshold = battery_threshold
 
         # Corner case handles
-        self.n_agents = None 
-        self.prev_n_agents = None    
+        self.n_agents = None
+        self.prev_n_agents = None
         self.problem = False
 
         self.old_path_len = show_old_path
@@ -67,8 +69,6 @@ class Agent:
         elif self.controller_type == 'path_tracker':
             self.set_path(path)
 
-
-
     # def update_state(self, swarm, action, is_free_space_fn):
     #     velocity = action * self.speed
     #     proposed_position = self.state[:2] + velocity * self.dt
@@ -79,12 +79,11 @@ class Agent:
     #     # Update state with the adjusted position
     #     self.state[:2] = adjusted_position
 
-    def set_path(self,path):
+    def set_path(self, path):
         self.path = path
         self.state[:2] = path[0]
         self.path_len = len(self.path)
         self.path_idx = 0
-
 
     def run_controller(self, swarm):
         """
@@ -95,7 +94,7 @@ class Agent:
         """
 
         if self.controller_type == 'connectivity_controller':
-            
+
             A, id_to_index = self.compute_adjacency()
 
             v = self.controller(self.agent_id,
@@ -109,18 +108,18 @@ class Agent:
             # Adjust position using obstacle avoidance
             # print(is_)
             if self.is_obstacle_avoidance:
-                adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
+                adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position,
                                                             is_free_path_fn=swarm.is_line_of_sight_free_fn)
                 # Update state with the adjusted position
                 self.state[:2] = adjusted_position
             else:
                 self.state[:2] = proposed_position
 
-            element = deepcopy(self.state[:2])        
+            element = deepcopy(self.state[:2])
             self.update_path_history(element)
 
 
-        
+
         elif self.controller_type == 'path_tracker' and self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
             self.path_idx += 1
@@ -129,10 +128,11 @@ class Agent:
             if self.path_idx < self.path_len:
                 displacement = self.path[self.path_idx] - self.state[:2]
                 if np.linalg.norm(displacement) > 0.05:
-                    self.state[:2] += (displacement / np.linalg.norm(displacement)) * self.speed if np.linalg.norm(displacement) != 0 else np.zeros_like(displacement)
+                    self.state[:2] += (displacement / np.linalg.norm(displacement)) * self.speed if np.linalg.norm(
+                        displacement) != 0 else np.zeros_like(displacement)
                 else:
                     self.state[:2] = self.path[self.path_idx]
-                    self.path_idx+=1
+                    self.path_idx += 1
 
             # self.prev_n_agents = deepcopy(self.n_agents)
 
@@ -148,9 +148,9 @@ class Agent:
             #             self.problem = True
 
         elif self.controller_type == 'explore':
-            local_obs,n_angles = self.get_local_observation(swarm.is_free_space_fn)
-            swarm.update_exploration_map_fn(self.state[:2],local_obs,n_angles,self.sensor_radius)
-            
+            local_obs, n_angles = self.get_local_observation(swarm.is_free_space_fn)
+            swarm.update_exploration_map_fn(self.state[:2], local_obs, n_angles, self.sensor_radius)
+
             if self.path is None:
                 goal = swarm.get_frontier_goal_fn(self.state[:2])
                 print("GOAL: ", goal)
@@ -160,24 +160,26 @@ class Agent:
             if self.path_idx < self.path_len:
                 displacement = self.path[self.path_idx] - self.state[:2]
                 if np.linalg.norm(displacement) > 0.05:
-                    self.state[:2] += (displacement / np.linalg.norm(displacement)) * self.speed if np.linalg.norm(displacement) != 0 else np.zeros_like(displacement)
+                    self.state[:2] += (displacement / np.linalg.norm(displacement)) * self.speed if np.linalg.norm(
+                        displacement) != 0 else np.zeros_like(displacement)
                 else:
                     self.state[:2] = self.path[self.path_idx]
-                    self.path_idx+=1
+                    self.path_idx += 1
             else:
                 print("path reached")
                 self.path = None
         elif self.controller_type == 'dummy':
-            self.state[0] += 1*self.speed
+            self.state[0] += 1 * self.speed
         elif self.controller_type == 'do_not_move':
             pass
 
         if self.battery_decay_rate is not None and self.battery > 0:
-            self.battery-=self.battery_decay_rate
+            if self.battery >= self.battery_decay_rate:
+                self.battery -= self.battery_decay_rate
+            else:
+                self.battery = 0
 
         # print(self.old_path)
-
-
 
     def get_local_observation(self, is_free_space_fn, n_angles=360):
         local_obs = np.full(n_angles, self.sensor_radius)
@@ -192,12 +194,9 @@ class Agent:
                     break
         return local_obs, n_angles
 
-
-
     def get_data(self):
         return {"id": self.agent_id, "position": self.state[:2]}
-    
-    
+
     def compute_adjacency(self):
         # Adjacency representation (dynamic growing dictionary)
         adjacency = defaultdict(set)
@@ -234,7 +233,6 @@ class Agent:
         size = len(all_ids)
         matrix = [[0] * size for _ in range(size)]
 
-
         for agent_id, neighbors in adjacency.items():
             for neighbor_id in neighbors:
                 i, j = id_to_index[agent_id], id_to_index[neighbor_id]
@@ -242,56 +240,51 @@ class Agent:
 
         return np.array(matrix), id_to_index
 
-
     def get_id(self):
         return self.agent_id
 
-
-    def set_neighbors(self,neighbors):
+    def set_neighbors(self, neighbors):
         self.neighbors = neighbors
 
-    
     def get_neighbors(self):
         return self.neighbors
-    
 
     def get_neighbors_pos(self):
         positions = []
         ids = []
-        
+
         # Collect IDs and positions from neighbors
         for agent in self.neighbors:
             ids.append(agent.get_id())
             positions.append(agent.get_pos())
-        
+
         # Pair IDs with positions, sort pairs by ID, and extract sorted positions
         paired = list(zip(ids, positions))  # [(id1, pos1), (id2, pos2), ...]
-        sorted_paired = sorted(paired)      # Sort by ID (ascending)
+        sorted_paired = sorted(paired)  # Sort by ID (ascending)
         sorted_positions = [pos for _, pos in sorted_paired]  # Extract positions
-        
+
         return np.array(sorted_positions)
 
-    
     def get_pos(self):
         return self.state[:2]
-    
-    def set_pos(self,pos):
+
+    def set_pos(self, pos):
         print(f"Type: {self.type}, ID: {self.agent_id}, batetery type: {self.battery}")
         self.state[:2] = pos
-    
+
     def is_battery_critical(self):
         if self.battery_decay_rate is not None:
             if self.battery <= self.battery_threshold:
                 return True
         return False
 
-    def update_path_history(self,element):
+    def update_path_history(self, element):
         if len(self.old_path) >= self.old_path_len:
             self.old_path.pop(0)  # Remove the oldest element
-        
+
         if len(self.old_path) > 0:
             distance = np.linalg.norm(element - self.old_path[-1])
-            if  distance > 0.1:
+            if distance > 0.1:
                 self.old_path.append(element)  # Add the new element
         elif len(self.old_path) == 0:
             self.old_path.append(element)  # Add the new element
@@ -322,7 +315,7 @@ class Agent:
         # Check if the direct path to the proposed position is free
         if is_free_path_fn(current_position, check_point):
             return proposed_position
-        
+
         # Sample alternative directions
         best_direction = None
         max_clear_distance = 0
@@ -350,9 +343,8 @@ class Agent:
 
         # If a best direction is found, move in that direction
         if best_direction is not None:
-
             # normalize the best direction
-            best_direction /= np.linalg.norm(best_direction) 
+            best_direction /= np.linalg.norm(best_direction)
             best_direction *= magnitude
 
             adjusted_position = current_position + best_direction
@@ -361,4 +353,3 @@ class Agent:
         # If no direction is free, stay in the current position
         print(f"Agent {self.agent_id}: No clear path, staying in place.")
         return current_position
-    

@@ -1,9 +1,9 @@
-import numpy as np
-from skimage import measure
 import copy
 from math import sqrt
 
-from skimage import measure, morphology
+import numpy as np
+from skimage import measure
+
 
 class FrontierDetector:
     def __init__(self, occupancy_map, map_resolution, map_origin, robot_size):
@@ -34,7 +34,7 @@ class FrontierDetector:
         for i in range(1, self.r - 1):
             for j in range(1, self.c - 1):
                 if self.occupancy_map[i, j] == 0:  # Free space
-                    if -1 in self.occupancy_map[i-1:i+2, j-1:j+2]:  # Check for unknown space around
+                    if -1 in self.occupancy_map[i - 1:i + 2, j - 1:j + 2]:  # Check for unknown space around
                         frontier_map[i, j] = 255  # Mark as a frontier
 
         # Step 2: Apply morphological operations to remove noise
@@ -72,7 +72,7 @@ class FrontierDetector:
     def pose_to_grid_distance(self, grid_point, pose_point):
         # Implementation remains the same
         world_point = self.__map_to_position__(grid_point)
-        return sqrt((pose_point[0] - world_point[0])**2 + (pose_point[1] - world_point[1])**2)
+        return sqrt((pose_point[0] - world_point[0]) ** 2 + (pose_point[1] - world_point[1]) ** 2)
 
     def __map_to_position__(self, grid_point):
         # Implementation remains the same

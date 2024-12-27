@@ -1,5 +1,7 @@
-import numpy as np
 import math
+
+import numpy as np
+
 
 class Bug0:
     name = "Bug0"
@@ -67,10 +69,10 @@ class Bug0:
             return direction_to_goal * self.env.robot_speed
 
         # If the path to the goal is blocked, follow the obstacle (path-following mode)
-        for i in range(len(local_obs)-1,0,-1):
+        for i in range(len(local_obs) - 1, 0, -1):
             if local_obs[i] >= self.vis_radius:
                 # Find the first clear direction to move
-                angle = math.radians(i * 360/n_angles)
+                angle = math.radians(i * 360 / n_angles)
                 return np.array([math.cos(angle), math.sin(angle)]) * self.env.robot_speed
 
         # If no clear path is found (should not happen with typical Bug 0 logic), stop

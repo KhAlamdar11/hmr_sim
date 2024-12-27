@@ -1,11 +1,10 @@
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
-import numpy as np
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class SwarmRenderer:
-    def __init__(self, render_type, env,swarm, occupancy_grid, origin, resolution, vis_radius=None, plot_limits=None):
+    def __init__(self, render_type, env, swarm, occupancy_grid, origin, resolution, vis_radius=None, plot_limits=None):
         self.env = env
         self.render_type = render_type
         self.swarm = swarm
@@ -27,7 +26,6 @@ class SwarmRenderer:
             2: {'cmap': 'YlOrBr', 'marker': 's'}
         }
         self.plot_limits = plot_limits
-
 
     def initialize(self):
         plt.ion()
@@ -62,10 +60,9 @@ class SwarmRenderer:
         self.ax.set_yticks([])
         self.ax.axis('off')
 
-
         if self.plot_limits is not None:
             self.ax.set_xlim(self.plot_limits[0], self.plot_limits[1])
-            self.ax.set_ylim(self.plot_limits[2], self.plot_limits[3])            
+            self.ax.set_ylim(self.plot_limits[2], self.plot_limits[3])
         else:
             self.ax.set_xlim(extent[0], extent[1])
             self.ax.set_ylim(extent[2], extent[3])
@@ -74,7 +71,6 @@ class SwarmRenderer:
         # Initialize paths and old paths
         self.paths = [None] * len(self.swarm.agents)
         self.old_paths = [None] * len(self.swarm.agents)
-
 
     def update_markers(self):
 
@@ -160,7 +156,7 @@ class SwarmRenderer:
                     )
                     self.old_paths[i] = old_path_line
 
-                if len(agent.old_path) % 6 == 0: 
+                if len(agent.old_path) % 6 == 0:
                     dx = old_path_x[-1] - old_path_x[-2]
                     dy = old_path_y[-1] - old_path_y[-2]
 
@@ -168,7 +164,6 @@ class SwarmRenderer:
                         old_path_x[-2], old_path_y[-2], dx, dy,
                         angles='xy', scale_units='xy', scale=0.6, color='blue', alpha=0.05, zorder=2
                     )
-
 
     def update_battery_circles(self):
         # Remove extra circles if agents are removed
@@ -226,11 +221,9 @@ class SwarmRenderer:
         self.update_markers()
         self.update_adjacency_lines()
         self.update_paths()
-        self.update_old_paths()  
-        self.update_battery_circles() 
-        if self.render_type=='explore':
+        self.update_old_paths()
+        self.update_battery_circles()
+        if self.render_type == 'explore':
             self.update_exploration_map()
         plt.draw()
         plt.pause(0.01)
-
-

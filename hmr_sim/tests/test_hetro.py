@@ -1,12 +1,13 @@
-from os import path
-import sys
-import numpy as np
 import random
-import configparser
-import gymnasium as gym  # Ensure updated Gymnasium import
-import hmr_sim
+import sys
+from os import path
 
+import gymnasium as gym  # Ensure updated Gymnasium import
+import numpy as np
 import yaml
+
+# This import has to be left for the script to find the registered environments of hmr_sim
+import hmr_sim
 
 def run(args):
     # Load environment
@@ -27,7 +28,6 @@ def run(args):
     t = 0
 
     env.render()
-
 
     while not done:
         # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
@@ -50,7 +50,7 @@ def run(args):
         # if t % 10 == 0:  # Log every 10 steps
         #     print(f"Step {t}: Reward: {reward}, Done: {done}")
 
-        t+=1
+        t += 1
 
     print("Simulation ended.")
 
@@ -75,6 +75,7 @@ def main():
 
     # Run the simulation using the default section of the config
     run(config)
+
 
 if __name__ == "__main__":
     main()

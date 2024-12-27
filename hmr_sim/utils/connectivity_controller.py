@@ -1,7 +1,6 @@
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
-from scipy.linalg import eig
 from numpy.linalg import inv
+from scipy.linalg import eig
 
 """
 The original code structure is adapted from the work of Sabbatini, 2013.
@@ -9,6 +8,7 @@ The code is adapted from part of MATLAB codebase at https://github.com/Cinaraghe
 Battery awareness is included.
 See code documentation and associated work for details.
 """
+
 
 class ConnectivityController:
 
@@ -24,7 +24,6 @@ class ConnectivityController:
         self.fiedler_vector = None
         self.critical_battery_level = self.params['critical_battery_level']
 
-
     def __call__(self, agent_idx, agent_position, neighbors, A, id_to_index):
         """
         Compute the control input for a specific UAV based on its position and neighbors.
@@ -39,7 +38,7 @@ class ConnectivityController:
         """
 
         if A.size == 0:
-            return np.array([0,0])
+            return np.array([0, 0])
 
         # Compute Fiedler value and vector
         fiedler_value = self.algebraic_connectivity(A)  # Update if adjacency is required
@@ -64,28 +63,27 @@ class ConnectivityController:
             # Compute the interaction gain
             if fiedler_value > self.params['epsilon']:
                 k = (-(1 / (self.params['sigma'] ** 2)) *
-                    (self.csch(fiedler_value - self.params['epsilon']) ** 2)) * (
+                     (self.csch(fiedler_value - self.params['epsilon']) ** 2)) * (
                         ((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
             else:
-                k = -(1 / (self.params['sigma'] ** 2)) * 100 * (((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
+                k = -(1 / (self.params['sigma'] ** 2)) * 100 * (
+                    ((fiedler_vector[id_to_index[agent_idx]] - fiedler_vector[neighbor_id]) ** 2))
 
             # Accumulate control contributions
             if agent.type == 'Robot' or agent.type == 2:
                 control_vector[0] += k * dx * 4
                 control_vector[1] += k * dy * 4
             else:
-                control_vector[0] += k * dx 
+                control_vector[0] += k * dx
                 control_vector[1] += k * dy
-
 
         # Scale control input
         control_vector = control_vector * self.params['gainConnectivity'] \
-                                        + self.calculate_repulsion_forces(agent_position, neighbors)
+                         + self.calculate_repulsion_forces(agent_position, neighbors)
 
         # return control_vector
 
         return np.clip(control_vector, -0.3, 0.3)
-
 
     def calculate_repulsion_forces(self, agent_position, neighbor_positions):
         """
@@ -112,17 +110,13 @@ class ConnectivityController:
 
         return repulsion_vector
 
-
-
     def csch(self, x):
         """Compute the hyperbolic cosecant of x."""
         return 1.0 / np.sinh(x)
 
-
     def degree(self, A):
         """Compute the degree matrix of adjacency matrix A."""
         return np.diag(np.sum(A, axis=1))
-
 
     def algebraic_connectivity(self, A):
         """
@@ -147,7 +141,6 @@ class ConnectivityController:
             ac = 0
         return ac
 
-
     def compute_eig_vector(self, A):
         """
         Compute the eigenvector corresponding to the second smallest eigenvalue of the Laplacian matrix.
@@ -167,7 +160,6 @@ class ConnectivityController:
         Y = np.argsort(eValues.real)
         v = eVectors[:, Y[1]]
         return v.real
-    
 
     def clip(self, velocities):
         """
@@ -178,7 +170,6 @@ class ConnectivityController:
             scale_factors = np.where(magnitudes > self.params['v_max'], self.params['v_max'] / magnitudes, 1)
         scaled_velocities = velocities * scale_factors[:, np.newaxis]
         return scaled_velocities
-
 
     def battery_gain(self, b):
         """

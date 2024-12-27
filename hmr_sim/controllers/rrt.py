@@ -1,32 +1,35 @@
-import numpy as np
 import random
+
+import numpy as np
+
 
 class Node:
     def __init__(self, position):
         self.position = np.array(position)
         self.parent = None
 
+
 class RRT:
     name = "RRT"
 
     def __init__(self, environment, step_size=0.5, max_iter=100000, goal_tolerance=0.5, goal_bias=0.1):
         self.env = environment
-        self.step_size = step_size                # Distance to move toward sampled points
-        self.max_iter = max_iter                  # Maximum iterations to attempt
-        self.goal_tolerance = goal_tolerance      # Distance to consider as reaching the goal
-        self.goal_bias = goal_bias                # Probability of sampling the goal directly
-        self.tree = []                            # Tree to store nodes
+        self.step_size = step_size  # Distance to move toward sampled points
+        self.max_iter = max_iter  # Maximum iterations to attempt
+        self.goal_tolerance = goal_tolerance  # Distance to consider as reaching the goal
+        self.goal_bias = goal_bias  # Probability of sampling the goal directly
+        self.tree = []  # Tree to store nodes
         self.occupancy_grid = environment.occupancy_grid
         self.origin = environment.origin
         self.resolution = environment.resolution
         self.goal = environment.goal
 
-    def set_params(self,step_size=0.5, max_iter=100000, goal_tolerance=0.5, goal_bias=0.1):
-        self.step_size = step_size              
-        self.max_iter = max_iter                
-        self.goal_tolerance = goal_tolerance    
+    def set_params(self, step_size=0.5, max_iter=100000, goal_tolerance=0.5, goal_bias=0.1):
+        self.step_size = step_size
+        self.max_iter = max_iter
+        self.goal_tolerance = goal_tolerance
         self.goal_bias = goal_bias
-    
+
     def reinitialize(self, environment=None, goal=None):
         """
         Reinitializes the RRT controller, resetting its internal state and optionally updating the environment or goal.
@@ -125,7 +128,7 @@ class RRT:
         from_position = np.array(from_position)
         to_position = np.array(to_position)
         num_points = int(np.linalg.norm(to_position - from_position))
-        
+
         for i in range(num_points):
             intermediate_position = from_position + (to_position - from_position) * (i / num_points)
             if not self.is_free_space(intermediate_position):
@@ -151,6 +154,6 @@ class RRT:
         x = grid_position[0] * self.resolution + self.origin['x']
         y = grid_position[1] * self.resolution + self.origin['y']
         return np.array([x, y])
-    
+
     def set_goal(self, goal):
         self.goal = goal

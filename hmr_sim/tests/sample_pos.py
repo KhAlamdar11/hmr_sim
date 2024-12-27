@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def sample_points_in_ellipse(n, major_radius, origin=(0, 0), minor_radius=None, min_distance=0.1):
     """
     Generate n points uniformly distributed within an ellipse while ensuring minimum distance between points.
@@ -37,6 +38,7 @@ def sample_points_in_ellipse(n, major_radius, origin=(0, 0), minor_radius=None, 
         # print(len(points))
 
     return points
+
 
 # Example usage
 if __name__ == "__main__":

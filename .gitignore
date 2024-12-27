@@ -3,3 +3,5 @@ __pycache__
 .idea/
 
 /hmr_sim/tests/data/
+/hmr_sim/tests/As/
+
