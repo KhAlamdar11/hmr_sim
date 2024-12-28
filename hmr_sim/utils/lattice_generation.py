@@ -3,6 +3,13 @@ import math
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+"""
+The functions here are used to generate 3-connected lattice based positions between 2 agents.
+"""
+
+# TODO: This code requires severe refactoring
+# TODO: Avoid recursion bug when number of agents is too large (See Issues)
+
 
 def assign_and_reorder_positions(current_positions, desired_positions):
     n = current_positions.shape[0]  # Number of robots/positions

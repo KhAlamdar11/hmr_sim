@@ -26,15 +26,17 @@ class ConnectivityController:
 
     def __call__(self, agent_idx, agent_position, neighbors, A, id_to_index):
         """
-        Compute the control input for a specific UAV based on its position and neighbors.
+        Computes the control input for an agent based on its position, neighbors, and adjacency matrix.
 
-        Parameters:
-        agent_idx (int): Index of the agent for which to compute the control input.
-        agent_position (ndarray): Position of the current UAV (1D array of shape (2,)).
-        neighbor_positions (ndarray): Positions of the neighboring UAVs (2D array of shape (n_neighbors, 2)).
+        Args:
+            agent_idx (int): Index of the agent for which to compute the control input.
+            agent_position (ndarray): Current position of the agent (shape: (2,)).
+            neighbors (list): List of neighboring agents.
+            A (ndarray): Adjacency matrix of the multi-agent network.
+            id_to_index (dict): Mapping from agent IDs to indices in the adjacency matrix.
 
         Returns:
-        ndarray: Control input for the agent.
+            ndarray: Control input vector for the agent (shape: (2,)).
         """
 
         if A.size == 0:
@@ -81,21 +83,20 @@ class ConnectivityController:
         control_vector = control_vector * self.params['gainConnectivity'] \
                          + self.calculate_repulsion_forces(agent_position, neighbors)
 
-        # return control_vector
-
         return np.clip(control_vector, -0.3, 0.3)
 
     def calculate_repulsion_forces(self, agent_position, neighbor_positions):
         """
-        Calculate repulsion forces for a specific agent based on its neighbors.
+        Calculates the repulsion forces acting on an agent due to nearby agents.
 
-        Parameters:
-        agent_position (ndarray): Position of the current agent (1D array of shape (2,)).
-        neighbor_positions (ndarray): Positions of the neighboring UAVs (2D array of shape (n_neighbors, 2)).
+        Args:
+            agent_position (ndarray): Position of the agent (shape: (2,)).
+            neighbors (list): List of neighboring agents.
 
         Returns:
-        ndarray: Repulsion vector for the agent.
+            ndarray: Repulsion vector (shape: (2,)).
         """
+
         threshold = self.params['repelThreshold']
         repulsion_strength = self.params['gainRepel']
         repulsion_vector = np.zeros(2)
@@ -111,7 +112,7 @@ class ConnectivityController:
         return repulsion_vector
 
     def csch(self, x):
-        """Compute the hyperbolic cosecant of x."""
+        """Computes the hyperbolic cosecant of x."""
         return 1.0 / np.sinh(x)
 
     def degree(self, A):
@@ -119,15 +120,8 @@ class ConnectivityController:
         return np.diag(np.sum(A, axis=1))
 
     def algebraic_connectivity(self, A):
-        """
-        Calculate the algebraic connectivity of the adjacency matrix A.
+        """ Calculates the algebraic connectivity (Fiedler value) of the adjacency matrix. """
 
-        Parameters:
-        A (ndarray): Adjacency matrix.
-
-        Returns:
-        float: Algebraic connectivity value.
-        """
         D = self.degree(A)
         if np.all(np.diag(D) != 0):
             L = D - A
@@ -143,13 +137,13 @@ class ConnectivityController:
 
     def compute_eig_vector(self, A):
         """
-        Compute the eigenvector corresponding to the second smallest eigenvalue of the Laplacian matrix.
+        Computes the eigenvector corresponding to the second-smallest eigenvalue (Fiedler value) of the Laplacian matrix.
 
         Parameters:
         A (ndarray): Adjacency matrix.
 
         Returns:
-        ndarray: Eigenvector corresponding to the second smallest eigenvalue.
+        ndarray: Eigenvector corresponding to the second-smallest eigenvalue.
         """
         D = self.degree(A)
         L = D - A
@@ -162,9 +156,7 @@ class ConnectivityController:
         return v.real
 
     def clip(self, velocities):
-        """
-        Clip velocities to ensure they do not exceed the maximum allowed velocity.
-        """
+        """ Clips velocities to ensure they do not exceed the maximum allowed velocity. """
         magnitudes = np.linalg.norm(velocities, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             scale_factors = np.where(magnitudes > self.params['v_max'], self.params['v_max'] / magnitudes, 1)
@@ -173,7 +165,7 @@ class ConnectivityController:
 
     def battery_gain(self, b):
         """
-        Calculate the battery gain based on the current battery level.
+        Computes the battery gain based on the current battery level.
 
         Parameters:
         b (float): Current battery level.

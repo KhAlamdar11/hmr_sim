@@ -10,26 +10,28 @@ from hmr_sim.utils.lattice_generation import gen_lattice
 from hmr_sim.utils.rrt import RRT
 from hmr_sim.utils.utils import get_curve
 
+"""
+The Swarm class manages a collection of heterogeneous agents in a multi-agent system.
+This class handles the initialization, simulation, and control of agents in a swarm, 
+including path planning, battery management, neighbor updates, and connectivity checks. 
+It supports dynamic addition and removal of agents based on battery levels or user-defined 
+criteria.
+"""
+
 
 class Swarm:
-    """Manages a swarm of heterogeneous agents."""
-
     def __init__(self, env, config, map_resolution, map_handlers, is_initialize_swarm=True):
 
         self.env = env
-
         self.action_dim = 2  # Assuming 2D action space
-
         self.vis_radius = config.get('vis_radius')
-
         self.dt = config.get('dt')
 
         self.agent_config = config.get('agent_config')
 
         # ________________________  controller  ________________________
         self.controller_params = config.get('controller_params')
-        sigma = math.sqrt(-self.vis_radius / (2 * math.log(self.controller_params['delta'])))
-        self.controller_params['sigma'] = sigma
+        self.controller_params['sigma'] = math.sqrt(-self.vis_radius / (2 * math.log(self.controller_params['delta'])))
         self.controller_params['range'] = self.vis_radius
         self.controller_params['repelThreshold'] = self.vis_radius * self.controller_params['repelThreshold']
 
@@ -80,7 +82,7 @@ class Swarm:
                         paths.append(get_curve(path,
                                                speed=self.agent_config[agent_type]['speed'],
                                                dt=self.dt))
-                # baterries
+                # Battery handling
                 init_battery = self.agent_config.get(agent_type).get('init_battery', None)
                 if init_battery == 'autofill':
                     init_battery = np.linspace(0.16, 0.9, self.agent_config[agent_type]['num_agents'])
@@ -105,7 +107,7 @@ class Swarm:
                                              show_old_path=env.show_old_path))
 
         # ________________________  Agent Additions  ________________________
-        if self.agents != []:
+        if self.agents:
             self.add_agent_params = config.get('add_agent_params')
             self.add_agent = AddAgent(self.add_agent_params, self.agents, self.vis_radius)
             self.add_agent_already_added = []
@@ -113,30 +115,7 @@ class Swarm:
         self.fiedler_list = []
         self.n_agents_list = []
 
-    def get_states(self):
-        return np.array([agent.state for agent in self.agents])
-
-    def get_poses(self):
-        return np.array([agent.state[:2] for agent in self.agents])
-
-    def step(self, actions, is_free_space_fn):
-        pass
-        # for agent, action in zip(self.agents, actions):
-        #     agent.update_state(self, action, is_free_space_fn)
-
     def compute_adjacency_matrix(self):
-        """
-        Computes the adjacency matrix for the swarm based on communication radius
-        and line-of-sight checks.
-        
-        Args:
-            communication_radius (float): Maximum distance for communication.
-            is_line_of_sight_free_fn (function): Function to check if the line of sight
-                                                 between two positions is obstacle-free.
-        
-        Returns:
-            np.ndarray: Adjacency matrix indicating connections between agents.
-        """
         positions = np.array([agent.state[:2] for agent in self.agents])
         edge_osbtacle = np.array([agent.is_obstacle_avoidance for agent in self.agents])
         num_agents = len(self.agents)
@@ -155,27 +134,13 @@ class Swarm:
 
         return adjacency_matrix
 
-    def get_dummy_action(self):
-        num_agents = len(self.agents)
-        action_dim = 2  # Assuming a 2D action space
-        return np.zeros((num_agents, action_dim), dtype=float)
-
-    def update_neighbors(self):
-        """
-        Computes neighbors for each agent based on the adjacency matrix and updates them.
-        """
-        adjacency_matrix = self.compute_adjacency_matrix()
-        for i, agent in enumerate(self.agents):
-            neighbors = [self.agents[j] for j in range(len(self.agents)) if adjacency_matrix[i, j] == 1]
-            agent.set_neighbors(neighbors)
-
-    def set_agent_path(self, idx, path):
-        self.agents[idx].set_path(path)
-
-    def get_paths(self):
-        return self.paths
-
     def run_controllers(self):
+        """
+        Executes the controllers for all agents and manages agent additions/removals.
+        This method updates neighbors, runs controllers for active agents, and dynamically
+        adds or removes agents based on battery thresholds or user-defined criteria.
+        """
+
         self.update_neighbors()
         # self.save_fiedler_value()
 
@@ -218,6 +183,13 @@ class Swarm:
         print(f"Agent {agent.agent_id} removed due to low battery.")
 
     def add_agent_swarm(self, agent, to_remove):
+        """
+        Dynamically adds an agent to the swarm based on the specified criteria.
+
+        Args:
+            agent (Agent): The agent triggering the addition.
+            to_remove (list): List of agents to be removed (optional).
+        """
 
         self.add_agent.set_neighbors(agent.neighbors)
 
@@ -231,6 +203,39 @@ class Swarm:
                 print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
                 self.add_agent()
                 self.total_agents += 1
+
+    def get_dummy_action(self):
+        num_agents = len(self.agents)
+        action_dim = 2  # Assuming a 2D action space
+        return np.zeros((num_agents, action_dim), dtype=float)
+
+    def update_neighbors(self):
+        """ Updates the neighbors for each agent in the swarm based on the adjacency matrix. """
+        adjacency_matrix = self.compute_adjacency_matrix()
+        for i, agent in enumerate(self.agents):
+            neighbors = [self.agents[j] for j in range(len(self.agents)) if adjacency_matrix[i, j] == 1]
+            agent.set_neighbors(neighbors)
+
+    def set_agent_path(self, idx, path):
+        self.agents[idx].set_path(path)
+
+    def get_paths(self):
+        return self.paths
+
+    def degree(self, A):
+        """Compute the degree matrix of adjacency matrix A."""
+        return np.diag(np.sum(A, axis=1))
+
+    def get_states(self):
+        return np.array([agent.state for agent in self.agents])
+
+    def get_poses(self):
+        return np.array([agent.state[:2] for agent in self.agents])
+
+    def step(self, actions, is_free_space_fn):
+        pass
+        # for agent, action in zip(self.agents, actions):
+        #     agent.update_state(self, action, is_free_space_fn)
 
     # ______________________  TESTS  ___________________
 
@@ -261,7 +266,3 @@ class Swarm:
         np.save("fiedler_list.npy", np.array(self.fiedler_list))
         np.save("n_agents_list.npy", np.array(self.n_agents_list))
         np.save(f"/As/A_{int(self.total_agents)}.npy", A)
-
-    def degree(self, A):
-        """Compute the degree matrix of adjacency matrix A."""
-        return np.diag(np.sum(A, axis=1))

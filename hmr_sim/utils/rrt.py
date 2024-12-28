@@ -5,12 +5,10 @@ import numpy as np
 np.random.seed(14)
 random.seed(14)
 
-
 class Node:
     def __init__(self, position):
         self.position = np.array(position)
         self.parent = None
-
 
 class RRT:
     name = "RRT"
