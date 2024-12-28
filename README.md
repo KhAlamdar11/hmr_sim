@@ -39,9 +39,9 @@ The table below illustrates examples of creating different mission scenarios. Th
 <table>
   <thead>
     <tr>
-      <th style="width: 30%;">Mission Scenario</th>
-      <th style="width: 30%;">Command</th>
-      <th style="width: 40%;">Visualization</th>
+      <th style="width: 50%;">Mission Scenario</th>
+      <th style="width: 40%;">Command</th>
+      <th style="width: 10%;">Visualization</th>
     </tr>
   </thead>
   <tbody>
