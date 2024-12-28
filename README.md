@@ -36,12 +36,38 @@ This environment is named ```Hetero-V0``` and inherits from the  ```Base``` envi
 
 The table below illustrates examples of creating different mission scenarios. The provided YAML files can be used as samples to experiment with various mission setups and parameters.
 
-| Mission Scenario                                                                                                                                            | Command                                         | Visualization                                                                           |
-|----------------|-------------------------------------------------|-----------------------------------------------------------------------------------------|
-| Connectivity control with addition of new agents when the connectivity is low.                                                                              | ```python3 test_hetro.py add_agent_base.yaml``` | ![Battery Management](hmr_sim/media/multi_agent_exploration.gif)                        |
-| An example of a heterogeneous system with a stationary base station (red), 4 mobile robots (yellow) that follow an RRT-defined path to goals, and UAVs (blue) that maintain connectivity of the entire network. | ```python3 test_hetro.py hetro.yaml```          | ![Heterogeneous System](hmr_sim/media/multi_agent_exploration.gif)                       |
-| An example where the UAVs (blue) perform obstacle avoidance.                                                                                                | ```python3 test_hetro.py obstacle.yaml```       | ![Collision Avoidance](hmr_sim/media/multi_agent_exploration.gif)                       |
-| A mission with 2 robots (yellow) exploring an unknown environment using frontier exploration, while UAVs (blue) maintain connectivity between these robots and the base station (red). | ```python3 test_hetro.py explore_x.yaml```      | ![Multi-Agent Exploration](hmr_sim/media/multi_agent_exploration.gif)                   |
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30%;">Mission Scenario</th>
+      <th style="width: 30%;">Command</th>
+      <th style="width: 40%;">Visualization</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Connectivity control with addition of new agents when the connectivity is low.</td>
+      <td><code>python3 test_hetro.py add_agent_base.yaml</code></td>
+      <td><img src="hmr_sim/media/multi_agent_exploration.gif" alt="Battery Management"></td>
+    </tr>
+    <tr>
+      <td>An example of a heterogeneous system with a stationary base station (red), 4 mobile robots (yellow) that follow an RRT-defined path to goals, and UAVs (blue) that maintain connectivity of the entire network.</td>
+      <td><code>python3 test_hetro.py hetro.yaml</code></td>
+      <td><img src="hmr_sim/media/multi_agent_exploration.gif" alt="Heterogeneous System"></td>
+    </tr>
+    <tr>
+      <td>An example where the UAVs (blue) perform obstacle avoidance.</td>
+      <td><code>python3 test_hetro.py obstacle.yaml</code></td>
+      <td><img src="hmr_sim/media/multi_agent_exploration.gif" alt="Collision Avoidance"></td>
+    </tr>
+    <tr>
+      <td>A mission with 2 robots (yellow) exploring an unknown environment using frontier exploration, while UAVs (blue) maintain connectivity between these robots and the base station (red).</td>
+      <td><code>python3 test_hetro.py explore_x.yaml</code></td>
+      <td><img src="hmr_sim/media/multi_agent_exploration.gif" alt="Multi-Agent Exploration"></td>
+    </tr>
+  </tbody>
+</table>
+
 
 
 ## Directory Structure
