@@ -4,15 +4,28 @@ import numpy as np
 
 from hmr_sim.utils.utils import svstack, distance
 
+"""
+This class is responsible for adding new agents to a swarm based on predefined 
+modes and criteria. The system parameters and modes are set during initialization, 
+and a new agent is added by calling the class instance.
+
+Attributes:
+    mode (str): The mode of agent addition ('add_agent_base' or 'add_agent_near').
+    type (str): Type of the agent to be added (for heterogeneous systems).
+    agent_addition_id (int): ID of the agent used as a base for new agent placement.
+    agents (list): List of existing agents in the swarm.
+    comm_radius (float): Communication radius for agent interactions.
+    neighbors (list): List of neighboring agents (for 'add_agent_near' mode).
+"""
+
 
 class AddAgent:
-
     def __init__(self, params, agents, comm_radius):
 
         # add_agent_base, add_agent_near
         self.mode = params['mode']
 
-        # In hetrogenous systems, specify which kind of agent you are adding
+        # In heterogeneous systems, specify which kind of agent you are adding
         self.type = params['agent_type_to_add']
 
         # For Mode: add_agent_base -> ID of the agent where the new agent must be added
@@ -34,10 +47,11 @@ class AddAgent:
         }
 
     def __call__(self):
+        """ Adds agent to the network based on system parameters. """
         if self.mode in self.mode_dispatch:
             self.mode_dispatch[self.mode]()
         else:
-            raise ValueError(f"Unknown mode: {self.mode}")
+            raise ValueError(f"Unknown add_agent mode: {self.mode}")
 
     def add_agent_base(self):
 
@@ -62,8 +76,6 @@ class AddAgent:
             if res is None:
                 continue
             a, pos = res
-            print(a, pos)
-            print("poss", poss)
             arc = svstack([arc, a])
             poss = np.concatenate([poss, pos])
 
@@ -76,23 +88,23 @@ class AddAgent:
 
     # ______________________  utils  _____________________
 
-    def find_sample_agent(self):
-        for agent in self.agents:
-            if agent.type == self.type:
-                return agent
-
-    def find_position(self):
-        for agent in self.agents:
-            if agent.agent_id == self.agent_addition_id:
-                return agent.get_pos()
-
-    def set_neighbors(self, neighbors):
-        self.neighbors = neighbors
-
     def add_agent_at(self, pos, return_all=False, factor_comm=0.7, factor_dist=0.5):
-        '''
-        Main function for add agent base strategy. Adds a new agent at the base.
-        '''
+        """
+        Creates a new position for a new agent to be added in the vicinity of a given agent.
+
+        Args:
+            pos (numpy.ndarray): position of the agent in who's vicinity a new agent has to be added
+            return_all (bool): flag to return all positions or only a selected one (different usage for add agent base and near)
+            factor_comm (float): the factor of communication radius at which new points are to be sampled in the vicinity of pos
+            factor_dist: distance factor of communication radius that serves as a min distance threshold for filtering out positions too close to other agents
+
+        Returns:
+            numpy.ndarray: position of the selected point if return_all = False
+            OR
+            numpy.ndarray: Position of all the possible sampled adn shortlisted points
+            numpy.ndarray: Number of connection each point potentially makes with agents in the network
+        """
+
         t = np.linspace(0, 2 * np.pi, self.n_samples_per)
         a, b = factor_comm * self.comm_radius * np.cos(t), factor_comm * self.comm_radius * np.sin(t)
         a += pos[0]
@@ -130,36 +142,13 @@ class AddAgent:
 
         return np.array([arc[m, 0], arc[m, 1]])
 
-    def add_agent_i(self, agent, n):
-        '''
-        Helper function for add agent near strategy.
-        '''
-        t = np.linspace(0, 2 * np.pi, 9)
-        a, b = 0.4 * self.comm_radius * np.cos(t), 0.4 * self.comm_radius * np.sin(t)
-        a += self.x[n, 0]
-        b += self.x[n, 1]
-        arc = np.array([[a, b] for a, b in zip(a, b)])
-
-        # shortlist pts
-        possible_pts = []
-        possible_connections = []
-        for j in range(arc.shape[0]):
-            allow = True
-            cons = 0
-            for i in range(self.n_agents):
-                if i != n and distance(arc[j], self.x[i]) < self.comm_radius * 0.3:
-                    allow = False
-                    break
-                elif i != n and i != agent and distance(arc[j], self.x[i]) < self.comm_radius:
-                    cons += 1
-            if allow:
-                possible_pts.append(arc[j])
-                possible_connections.append(cons)
-
-        return np.array(possible_pts), np.array(possible_connections)
-
     def create_new_agent(self, pos):
-        # Create copy of a agent type of same name, and reinitialize its position
+        """
+        Creates a new agent of specified type of type and sets its parameters
+
+        Args:
+            pos: The new position where the agent must be added
+        """
         agent = self.find_sample_agent()
         new_agent = deepcopy(agent)
         new_agent.battery = 1.0
@@ -167,110 +156,17 @@ class AddAgent:
         new_agent.old_path = []
         self.agents.append(new_agent)
 
-# def add_agent(add_agent_mode, agents, total_agents):
-#     if add_agent_mode == 'add_agent_base':
-#         pos = np.array([0.0,0.0])
-#         add_agent_pos(1,pos,agents,total_agents)
+    def find_sample_agent(self):
+        """ Samples an agent of the type to be added so a new instance is not needed to be created from scratch """
+        for agent in self.agents:
+            if agent.type == self.type:
+                return agent
 
+    def find_position(self):
+        """ Finds the position of the agent in whose vicinity a new agent has to be added. Used for the add agent base methodology to specify where the base is.       """
+        for agent in self.agents:
+            if agent.agent_id == self.agent_addition_id:
+                return agent.get_pos()
 
-# def add_agent_pos(type,pos,agents,total_agents):
-#     '''
-#     Adds a new agent at a certain position pos
-#     '''
-#     for agent in agents:
-#         if agent.type == 0:
-#             # print(f"Adding new agent at {pos}.")
-#             new_agent = deepcopy(agent)
-#             new_agent.set_pos(pos)
-#             new_agent.battery = 1.0
-#             new_agent.agent_id = total_agents
-#             agents.append(new_agent)
-#             return
-
-# def add_agent(self,agent):
-#     '''
-#     Main function for add agent near strategy. Adds a new agent in the vicinity of the depleting agent.
-#     '''
-#     neighbors = np.nonzero(self.state_network[agent, :])[0]
-#     arc = np.array([])
-#     poss = np.array([])
-#     for neigh in neighbors:
-#         a, pos = self.add_agent_i(agent,neigh)
-#         arc = svstack([arc, a])
-#         poss = np.concatenate([poss,pos])
-
-#     if poss.shape[0]!=0:
-#         m = np.argmax(poss)
-
-#         new_agent = np.array([arc[m,0],arc[m,1],0,0])
-
-#         self.x = np.vstack([self.x,new_agent])
-#         self.n_agents += 1
-#         self.battery = np.append(self.battery, 1.0)
-#         self.in_motion = np.append(self.in_motion, False)
-
-
-# def add_agent_i(self,agent,n):
-#     '''
-#     Helper function for add agent near strategy.
-#     '''
-#     t = np.linspace(0, 2 * np.pi, 9)   
-#     a, b = 0.4*self.comm_radius*np.cos(t), 0.4*self.comm_radius*np.sin(t)
-#     a += self.x[n,0]
-#     b += self.x[n,1]
-#     arc = np.array([[a, b] for a, b in zip(a, b)])
-
-#     # shortlist pts
-#     possible_pts = []
-#     possible_connections = []
-#     for j in range(arc.shape[0]):
-#         allow = True
-#         cons = 0
-#         for i in range(self.n_agents):
-#             if i != n and distance(arc[j],self.x[i]) < self.comm_radius*0.3:
-#                 allow = False
-#                 break
-#             elif i != n and i!=agent and distance(arc[j],self.x[i]) < self.comm_radius :
-#                 cons += 1
-#         if allow:
-#             possible_pts.append(arc[j])
-#             possible_connections.append(cons)
-
-#     return np.array(possible_pts), np.array(possible_connections)
-
-
-# def add_agent_base(self,agent):
-#     '''
-#     Main function for add agent base strategy. Adds a new agent at the base.
-#     '''
-#     t = np.linspace(0, 2 * np.pi, 15)   
-#     a, b = 0.7*self.comm_radius*np.cos(t), 0.7*self.comm_radius*np.sin(t)
-#     a += self.x[0,0]
-#     b += self.x[0,1]
-#     arc = np.array([[a, b] for a, b in zip(a, b)])
-
-#     # shortlist pts
-#     possible_pts = []
-#     possible_connections = []
-#     for j in range(arc.shape[0]):
-#         allow = True
-#         cons = 0
-#         for i in range(self.x.shape[0]):
-#             if i != 0 and distance(arc[j],self.x[i]) < self.comm_radius*0.7:
-#                 allow = False
-#                 break
-#             elif i != 0 and i!=agent and distance(arc[j],self.x[i]) < self.comm_radius:
-#                 cons += 1
-#         if allow:
-#             possible_pts.append(arc[j])
-#             possible_connections.append(cons)
-
-#     arc, poss = np.array(possible_pts), np.array(possible_connections)
-#     m = np.argmax(poss)
-
-#     new_agent = np.array([arc[m,0],arc[m,1],0,0])
-
-#     self.x = np.vstack([self.x,new_agent])
-#     self.n_agents += 1
-#     self.battery = np.append(self.battery, 1.0)
-#     self.in_motion = np.append(self.in_motion, False)
+    def set_neighbors(self, neighbors):
+        self.neighbors = neighbors

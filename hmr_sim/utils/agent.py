@@ -6,10 +6,23 @@ import numpy as np
 
 from hmr_sim.utils.connectivity_controller import ConnectivityController
 
+"""
+Represents an individual agent in the swarm.
+
+This class models an agent with its state, behavior, and interactions in a 
+multi-agent swarm simulation. It supports various controller types and includes 
+functionality for obstacle avoidance, path following, and goal-directed behavior.
+
+Attributes:
+    type (str): The type of the agent.
+    agent_id (int): Unique identifier for the agent.
+    state (np.ndarray): The state of the agent [x, y, vx, vy].
+    battery (float): Battery level of the agent.
+    neighbors (list): List of neighboring agents.
+"""
+
 
 class Agent:
-    '''Represents a single independent.'''
-
     def __init__(self, type, agent_id, init_position,
                  dt, vis_radius, map_resolution,
                  config, controller_params, path_planner=None,
@@ -17,7 +30,7 @@ class Agent:
                  battery_decay_rate=None, battery_threshold=None,
                  show_old_path=0):
 
-        # Base params
+        # Base parameters
         self.type = type
         self.agent_id = agent_id
         self.dt = dt
@@ -25,59 +38,50 @@ class Agent:
         self.map_resolution = map_resolution
         self.mode = 'active'
 
-        # Config params
+        # Configuration parameters
         self.is_obstacle_avoidance = config['obstacle_avoidance']
         self.speed = config['speed']
         self.sensor_radius = config['sensor_radius']
         self.obstacle_radius = config['obs_radius']
 
-        # Agent vars
-        self.state = np.zeros(4)
+        # State variables
+        self.state = np.zeros(4) # [x, y, vx, vy]
         self.state[:2] = init_position
         self.path = None
         self.path_idx = 0
         self.path_len = 0
         self.neighbors = None
 
-        # Battery Variables
+        # Battery variables
         self.battery = init_battery if init_battery is not None else 1.0
         self.battery_decay_rate = battery_decay_rate
         self.battery_threshold = battery_threshold
 
-        # Corner case handles
+        # Debugging and edge-case handling
         self.n_agents = None
         self.prev_n_agents = None
         self.problem = False
 
+        # Path history visualization
         self.old_path_len = show_old_path
         self.old_path = []
 
-        # #________________________  controller  ________________________
+        # Controller setup
         self.controller_type = config['controller_type']
-
         print(f'Agent ID: {self.agent_id}, Type: {self.type}, Controller: {self.controller_type}')
 
         if self.controller_type == 'connectivity_controller':
             self.controller = ConnectivityController(params=controller_params)
         elif self.controller_type == 'go_to_goal':
-            print("planning path")
+            print(f"Agent ID: {self.agent_id} -> Planning path to {goal}")
             self.controller = path_planner
             self.controller.set_goal(goal)
             self.set_path(path_planner.plan_path(self.state[:2]))
+            print(f"Agent ID: {self.agent_id} -> Path set to {goal}")
         elif self.controller_type == 'explore':
             self.controller = path_planner
         elif self.controller_type == 'path_tracker':
             self.set_path(path)
-
-    # def update_state(self, swarm, action, is_free_space_fn):
-    #     velocity = action * self.speed
-    #     proposed_position = self.state[:2] + velocity * self.dt
-
-    #     adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position, 
-    #                                                     is_free_path_fn=swarm.is_line_of_sight_free_fn)
-
-    #     # Update state with the adjusted position
-    #     self.state[:2] = adjusted_position
 
     def set_path(self, path):
         self.path = path
@@ -106,7 +110,6 @@ class Agent:
             proposed_position = self.state[:2] + self.speed * v * self.dt
 
             # Adjust position using obstacle avoidance
-            # print(is_)
             if self.is_obstacle_avoidance:
                 adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position,
                                                             is_free_path_fn=swarm.is_line_of_sight_free_fn)
@@ -114,16 +117,17 @@ class Agent:
                 self.state[:2] = adjusted_position
             else:
                 self.state[:2] = proposed_position
-
             element = deepcopy(self.state[:2])
+
+            # Update path history for visualization
             self.update_path_history(element)
 
-
-
+        # Path tracker: Follow a predefined path
         elif self.controller_type == 'path_tracker' and self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
             self.path_idx += 1
 
+        # Goal-directed controller: Move towards a goal
         elif self.controller_type == 'go_to_goal' and self.path is not None:
             if self.path_idx < self.path_len:
                 displacement = self.path[self.path_idx] - self.state[:2]
@@ -147,6 +151,7 @@ class Agent:
             #             self.path_idx = 0
             #             self.problem = True
 
+        # Exploration: Update map and plan new paths based on frontier exploration
         elif self.controller_type == 'explore':
             local_obs, n_angles = self.get_local_observation(swarm.is_free_space_fn)
             swarm.update_exploration_map_fn(self.state[:2], local_obs, n_angles, self.sensor_radius)
@@ -168,20 +173,32 @@ class Agent:
             else:
                 print("path reached")
                 self.path = None
+
         elif self.controller_type == 'dummy':
             self.state[0] += 1 * self.speed
+
         elif self.controller_type == 'do_not_move':
             pass
 
+        # Battery decay logic
         if self.battery_decay_rate is not None and self.battery > 0:
-            if self.battery >= self.battery_decay_rate:
-                self.battery -= self.battery_decay_rate
-            else:
-                self.battery = 0
+            self.battery = max(0, self.battery - self.battery_decay_rate)
 
-        # print(self.old_path)
 
     def get_local_observation(self, is_free_space_fn, n_angles=360):
+        """
+        Simulates a local observation using a simulated LIDAR-like sensor. It calculates the distances to obstacles in the agent's surroundings
+        by casting rays in `n_angles` directions up to the agent's sensor radius.
+
+        Args:
+            is_free_space_fn (callable): A function that checks if a given position in space is free.
+            n_angles (int, optional): Number of angles to sample in a 360-degree field of view. Defaults to 360.
+
+        Returns:
+            tuple:
+                - local_obs (numpy.ndarray): Array of distances to obstacles for each sampled angle.
+                - n_angles (int): Number of angles sampled (same as input).
+        """
         local_obs = np.full(n_angles, self.sensor_radius)
         current_x, current_y = self.state[:2]
         for i in range(n_angles):
@@ -194,10 +211,18 @@ class Agent:
                     break
         return local_obs, n_angles
 
-    def get_data(self):
-        return {"id": self.agent_id, "position": self.state[:2]}
-
     def compute_adjacency(self):
+        """
+        Computes the adjacency matrix representing the communication graph of the swarmby using BFS to traverse the swarm's agents and build an adjacency matrix.
+
+        Returns:
+            tuple:
+                - adjacency_matrix (numpy.ndarray): A binary matrix where a value of 1
+                  indicates a direct connection between agents.
+                - id_to_index (dict): A mapping from agent IDs to their respective
+                  indices in the adjacency matrix.
+        """
+
         # Adjacency representation (dynamic growing dictionary)
         adjacency = defaultdict(set)
 
@@ -240,58 +265,10 @@ class Agent:
 
         return np.array(matrix), id_to_index
 
-    def get_id(self):
-        return self.agent_id
-
-    def set_neighbors(self, neighbors):
-        self.neighbors = neighbors
-
-    def get_neighbors(self):
-        return self.neighbors
-
-    def get_neighbors_pos(self):
-        positions = []
-        ids = []
-
-        # Collect IDs and positions from neighbors
-        for agent in self.neighbors:
-            ids.append(agent.get_id())
-            positions.append(agent.get_pos())
-
-        # Pair IDs with positions, sort pairs by ID, and extract sorted positions
-        paired = list(zip(ids, positions))  # [(id1, pos1), (id2, pos2), ...]
-        sorted_paired = sorted(paired)  # Sort by ID (ascending)
-        sorted_positions = [pos for _, pos in sorted_paired]  # Extract positions
-
-        return np.array(sorted_positions)
-
-    def get_pos(self):
-        return self.state[:2]
-
-    def set_pos(self, pos):
-        print(f"Type: {self.type}, ID: {self.agent_id}, batetery type: {self.battery}")
-        self.state[:2] = pos
-
-    def is_battery_critical(self):
-        if self.battery_decay_rate is not None:
-            if self.battery <= self.battery_threshold:
-                return True
-        return False
-
-    def update_path_history(self, element):
-        if len(self.old_path) >= self.old_path_len:
-            self.old_path.pop(0)  # Remove the oldest element
-
-        if len(self.old_path) > 0:
-            distance = np.linalg.norm(element - self.old_path[-1])
-            if distance > 0.1:
-                self.old_path.append(element)  # Add the new element
-        elif len(self.old_path) == 0:
-            self.old_path.append(element)  # Add the new element
 
     def obstacle_avoidance(self, proposed_position, is_free_path_fn, num_samples=4):
         """
-        Adjust the proposed position to avoid collisions using free path sampling.
+        Adjust the proposed position to avoid collisions using free path sampling by steer to avoid methodology.
 
         Parameters:
         proposed_position (np.ndarray): The next position proposed by the controller.
@@ -308,9 +285,6 @@ class Agent:
         direction_to_target /= np.linalg.norm(direction_to_target)  # Normalize
 
         check_point = current_position + direction_to_target * self.obstacle_radius
-
-        # print(direction_to_target)
-        # print(check_point)
 
         # Check if the direct path to the proposed position is free
         if is_free_path_fn(current_position, check_point):
@@ -341,7 +315,7 @@ class Agent:
                     max_clear_distance = clear_distance
                     best_direction = candidate_direction
 
-        # If a best direction is found, move in that direction
+        # If the best direction is found, move in that direction
         if best_direction is not None:
             # normalize the best direction
             best_direction /= np.linalg.norm(best_direction)
@@ -353,3 +327,65 @@ class Agent:
         # If no direction is free, stay in the current position
         print(f"Agent {self.agent_id}: No clear path, staying in place.")
         return current_position
+
+    def get_id(self):
+        return self.agent_id
+
+    def set_neighbors(self, neighbors):
+        self.neighbors = neighbors
+
+    def get_neighbors(self):
+        return self.neighbors
+
+    def get_neighbors_pos(self):
+        positions = []
+        ids = []
+
+        # Collect IDs and positions from neighbors
+        for agent in self.neighbors:
+            ids.append(agent.get_id())
+            positions.append(agent.get_pos())
+
+        # Pair IDs with positions, sort pairs by ID, and extract sorted positions
+        paired = list(zip(ids, positions))  # [(id1, pos1), (id2, pos2), ...]
+        sorted_paired = sorted(paired)  # Sort by ID (ascending)
+        sorted_positions = [pos for _, pos in sorted_paired]  # Extract positions
+
+        return np.array(sorted_positions)
+
+    def get_pos(self):
+        return self.state[:2]
+
+    def set_pos(self, pos):
+        print(f"Type: {self.type}, ID: {self.agent_id}, battery type: {self.battery}")
+        self.state[:2] = pos
+
+    def is_battery_critical(self):
+        if self.battery_decay_rate is not None:
+            if self.battery <= self.battery_threshold:
+                return True
+        return False
+
+    def update_path_history(self, element):
+        if len(self.old_path) >= self.old_path_len:
+            self.old_path.pop(0)  # Remove the oldest element
+
+        if len(self.old_path) > 0:
+            distance = np.linalg.norm(element - self.old_path[-1])
+            if distance > 0.1:
+                self.old_path.append(element)  # Add the new element
+        elif len(self.old_path) == 0:
+            self.old_path.append(element)  # Add the new element
+
+    def get_data(self):
+        return {"id": self.agent_id, "position": self.state[:2]}
+
+    # def update_state(self, swarm, action, is_free_space_fn):
+    #     velocity = action * self.speed
+    #     proposed_position = self.state[:2] + velocity * self.dt
+
+    #     adjusted_position = self.obstacle_avoidance(proposed_position=proposed_position,
+    #                                                     is_free_path_fn=swarm.is_line_of_sight_free_fn)
+
+    #     # Update state with the adjusted position
+    #     self.state[:2] = adjusted_position

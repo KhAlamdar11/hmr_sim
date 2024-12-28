@@ -226,7 +226,6 @@ class Swarm:
         #     if self.compute_fiedler_value(A) <= self.min_fiedler:
         #         add_agent(add_agent_mode, add_agent_criterion, self.agents)
 
-        # el
         if self.add_agent_params['criterion'] == 'min_n_agents':
             if self.total_agents - len(to_remove) <= self.add_agent_params['critical_value']:
                 print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
