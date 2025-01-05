@@ -114,6 +114,8 @@ class Swarm:
 
         self.fiedler_list = []
         self.n_agents_list = []
+        self.vels = []
+        self.vel_std = []
 
     def compute_adjacency_matrix(self):
         positions = np.array([agent.state[:2] for agent in self.agents])
@@ -142,7 +144,7 @@ class Swarm:
         """
 
         self.update_neighbors()
-        # self.save_fiedler_value()
+        self.save_fiedler_value()
 
         to_remove = []
         to_add = []
@@ -262,7 +264,35 @@ class Swarm:
         self.fiedler_list.append(ac)
         self.n_agents_list.append(self.total_agents)
 
+        self.get_velocity_data()
+
         # Save the two lists as .npy files
         np.save("fiedler_list.npy", np.array(self.fiedler_list))
         np.save("n_agents_list.npy", np.array(self.n_agents_list))
-        np.save(f"/As/A_{int(self.total_agents)}.npy", A)
+        # np.save(f"/As/A_{int(self.total_agents)}.npy", A)
+
+    def get_velocity_data(self):
+        # Compute velocities
+        vels = [np.linalg.norm(agent.state[2:]) for agent in self.agents[2:]]
+        mean_vel = np.mean(vels)
+        std_dev_vel = np.max(vels)
+
+        self.vels.append(mean_vel)
+        self.vel_std.append(std_dev_vel)
+
+        # Save the two lists as .npy files
+        np.save("vels.npy", np.array(self.vels))
+        np.save("vels_std.npy", np.array(self.vel_std))
+
+    def compute_fiedler_value(self):
+        A = self.compute_adjacency_matrix()
+        D = self.degree(A)
+
+        if np.all(np.diag(D) != 0):
+            L = D - A
+            eValues, _ = eig(L)
+            eValues = np.sort(eValues.real)
+            ac = eValues[1]
+        else:
+            ac = 0
+        return ac

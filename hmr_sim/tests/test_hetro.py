@@ -9,6 +9,8 @@ import yaml
 # This import has to be left for the script to find the registered environments of hmr_sim
 import hmr_sim
 
+from hmr_sim.utils.battery_tracker import BatteryTracker
+
 def run(args):
     # Load environment
     env_name = args.get('env')
@@ -27,6 +29,9 @@ def run(args):
     done = False
     t = 0
 
+    # create a battery tracker to keep battery states
+    battery_tracker = BatteryTracker()
+
     env.render()
 
     while not done:
@@ -36,6 +41,8 @@ def run(args):
         # if t > 30 and t < 100:
         if t > 30:
             env.unwrapped.controller()
+            # if t % 10 == 0:
+            battery_tracker.update(env.unwrapped.swarm.agents)
         # obs, reward, terminated, truncated, info = env.step(None)
         # done = terminated or truncated
         # except:
@@ -51,6 +58,11 @@ def run(args):
         #     print(f"Step {t}: Reward: {reward}, Done: {done}")
 
         t += 1
+        # print(t)
+        # if t>6000:
+        #     battery_tracker.save_to_file("battery_data.csv")
+        #     break
+
 
     print("Simulation ended.")
 

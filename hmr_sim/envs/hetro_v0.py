@@ -46,8 +46,12 @@ class HetroV0(BaseEnv):
             low=-1.0, high=1.0, shape=(self.total_agents, 2), dtype=np.float32)
 
     def render(self, mode='human'):
+        # print(f'N agents {self.swarm.total_agents}')
         # if self.old_total_agents > self.swarm.total_agents:
-        #     if self.swarm.total_agents % 2 == 0: 
+        #     if self.swarm.total_agents % 2 == 0:
+        # print(self.swarm)
+        # print(f'Fiedler value {self.swarm.compute_fiedler_value()}')
+        # if self.swarm.total_agents == 12:
         self.render_func.render()
         #         self.old_total_agents = self.swarm.total_agents
         # elif self.start:

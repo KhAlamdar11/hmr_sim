@@ -34,6 +34,8 @@ class AddAgent:
         self.agents = agents
         self.comm_radius = comm_radius
 
+        self.seen_ids = set()
+
         # internal add agents params
         self.n_samples_per = 30
 
@@ -151,6 +153,12 @@ class AddAgent:
         """
         agent = self.find_sample_agent()
         new_agent = deepcopy(agent)
+
+        # find max if
+        [self.seen_ids.add(agent.agent_id) for agent in self.agents]
+
+        new_agent.agent_id = max(self.seen_ids) + 1
+
         new_agent.battery = 1.0
         new_agent.set_pos(pos)
         new_agent.old_path = []

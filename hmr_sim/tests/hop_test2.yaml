@@ -3,7 +3,7 @@ env: Hetro-v0  # Name of the environment
 map_name: map1  # Map name used in the environment
 
 # Visibility radius of each agent
-vis_radius: 1.5
+vis_radius: 1.2
 # Time step for the simulation
 dt: 0.1
 
@@ -13,7 +13,7 @@ agent_config:
     num_agents: 2
     controller_type: do_not_move
     obstacle_avoidance: 0
-    init_position: [[0.0,0.0],[3.5,0.0]]
+    init_position: [[-1.725,0.0],[1.725,0.0]]
     speed: 0.8
     sensor_radius: 7.0
     obs_radius: 0.75
@@ -36,33 +36,28 @@ agent_config:
   #   obs_radius: 0.75
   #   goals: [[-3.5,3.5]]
   1:                        # New type of agent (eg. Crazyflie, Scout mini, etc)
-    num_agents: 12
+    num_agents: 10
     controller_type: connectivity_controller
     obstacle_avoidance: 0   # Flag to enable or disable obstacle avoidance
-    init_position: None     # Spawn agents at predefined positions (list of lists)
-    # init_formation:         # Spawn agents as a formation (see options in documentation)
-    #   shape: Elipse
-    #   origin: [0.5,0.0]
-    #   major_radius: 3.0
-    init_formation:         # Spawn agents as a formation (see options in documentation)
+    init_position: None
+    init_formation: # Spawn agents as a formation (see options in documentation)
       shape: lattice
-      origin: [0.0,0.0]
+      origin: [ 0.0,0.0 ]
       major_radius: 3.0
     speed: 1.0
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
     # Battery related variables
-    init_battery: [0.17,0.17,0.17,0.17,0.75,0.7,0.775,0.17,0.17,0.8,0.825,0.85,0.875,0.8,0.825,0.85,0.875] # autofill to fill batteries linearly between 0.5 and 1.0
-    # [0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65]
-    battery_decay_rate: 0.0002
+    init_battery: autofill
+    battery_decay_rate: 0.0000
     battery_threshold: 0.11
 
 
 # Add agent config for centralized swarm class
 add_agent_params:
-  mode: add_agent_near       # add_agent_base, add_agent_near
+  mode: add_agent_base       # add_agent_base, add_agent_near
   criterion: min_n_agents     # min_n_agents, min_fiedler
-  critical_value: 14         # value of the criterian chosen
+  critical_value: 0         # value of the criterian chosen
   battery_of_concern: 0.13
   agent_type_to_add: 1
   agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
@@ -71,7 +66,7 @@ add_agent_params:
 vis_params:
   render_type: nav               # rendering mode (nav, explore)
   show_old_path: 10000           # show the history of states/past trajectory
-  plot_limits: [-1, 4, -2.5, 2.5]  # Put None if you want the whole map to be displayed
+  plot_limits: [-5, 5, -5, 5]  # Put None if you want the whole map to be displayed
 
 
 # ___________________ Controller Parameters ___________________

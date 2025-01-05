@@ -3,7 +3,7 @@ env: Hetro-v0  # Name of the environment
 map_name: map1  # Map name used in the environment
 
 # Visibility radius of each agent
-vis_radius: 1.5
+vis_radius: 1.2
 # Time step for the simulation
 dt: 0.1
 
@@ -48,22 +48,22 @@ agent_config:
       shape: lattice
       origin: [0.0,0.0]
       major_radius: 3.0
-    speed: 1.0
+    speed: 0.5
     sensor_radius: 7.0      # Sensor readius for mapping
     obs_radius: 0.75        # Distance at which obstacle avoidance activates
     # Battery related variables
-    init_battery: [0.17,0.17,0.17,0.17,0.75,0.7,0.775,0.17,0.17,0.8,0.825,0.85,0.875,0.8,0.825,0.85,0.875] # autofill to fill batteries linearly between 0.5 and 1.0
+    init_battery: [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.65,0.75,0.85,0.95] #[0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65] # autofill to fill batteries linearly between 0.5 and 1.0
     # [0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65]
-    battery_decay_rate: 0.0002
+    battery_decay_rate: 0.0001
     battery_threshold: 0.11
 
 
 # Add agent config for centralized swarm class
 add_agent_params:
-  mode: add_agent_near       # add_agent_base, add_agent_near
+  mode: add_agent_near        # add_agent_base, add_agent_near
   criterion: min_n_agents     # min_n_agents, min_fiedler
   critical_value: 14         # value of the criterian chosen
-  battery_of_concern: 0.13
+  battery_of_concern: 0.16
   agent_type_to_add: 1
   agent_addition_id: 0   # For add_agent_base: ID of the agent where the new agent must be added
 
@@ -79,7 +79,7 @@ vis_params:
 controller_params:
   delta: 0.2  # Variance control for connectivity controller
   repelThreshold: 0.8  # Threshold ratio for repulsion
-  battery_aware: 0  # Whether the controller is battery aware (0: No, 1: Yes)
+  battery_aware: 1  # Whether the controller is battery aware (0: No, 1: Yes)
   normalized: 0  # Whether the values are normalized (0: No, 1: Yes)
   epsilon: 0.01  # Small constant for stability
   gainConnectivity: 1.0  # Gain for connectivity control
@@ -87,5 +87,5 @@ controller_params:
   unweighted: 1  # Use unweighted control (0: No, 1: Yes)
   v_max: 0.3  # Maximum velocity of the agents
   critical_battery_level: 0.11  # Threshold for critical battery level
-  tau: 0.01  # Time constant for controller
+  tau: 0.2  # Time constant for controller
 

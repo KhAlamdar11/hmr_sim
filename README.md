@@ -4,7 +4,7 @@
 [![Gymnasium](https://gymnasium.farama.org/assets/images/logo-dark.svg)](https://github.com/Farama-Foundation/Gymnasium)
 
 
-This package provides a hmr_sim simulator built with Gymnasium for testing and developing multi-agent system algorithms. It is designed for quickly creating new mission scenerios.
+This package provides a hmr_sim simulator built with Gymnasium for testing and developing multi-agent system algorithms. It is designed for quickly creating new mission scenarios.
 
 
 ## Installation
@@ -18,19 +18,17 @@ This package provides a hmr_sim simulator built with Gymnasium for testing and d
     pip install -r requirements.txt
     ```
 
-2. **Setup the package:**
+2. **Set up the package:**
 
     ```bash
     pip install -e . 
     ```
 
 
-## Availabe Environments
+## Available Environments
 
-For simplicity, a single Gymnasium environment is created to handle all multiple mission scenerios and parameters using a config file.
-This environment is named ```Hetero-V0``` and inherits from the  ```Base``` environment. The ```Base``` environment handles all the map related behaviours and is created seperately from ```Hetero-V0``` to allow extensions to multiple environments if needed in the future.
-
-## Usage examples
+For simplicity, a single Gymnasium environment is created to handle all multiple mission scenarios and parameters using a config file.
+This environment is named ```Hetero-V0``` and inherits from the  ```Base``` environment. The ```Base``` environment handles all the map related behaviours and is created separately from ```Hetero-V0``` to allow extensions to multiple environments if needed in the future.
 
 ## Usage Examples
 
@@ -48,16 +46,12 @@ The table below illustrates examples of creating different mission scenarios. Th
 
 This package is organized as follows:
 
-
-## TODOs
-
 ## TODOs
 
 - [ ] **Bug**: For different path types (circle, ellipse, square), agents move at varying speeds even when the speed variable is the same. Redo perimeter sampling logic.
 - [ ] **Error Handling**: Raise an error if a formation is initialized within an obstacle.
 - [ ] **Validation**: Create a function to validate configuration combinations.   For example: If there are two agents and the `go_to_goal` controller is chosen, ensure that two goal positions are specified.
 
-## Bugs
 
 [//]: # (- [ ] Error: Possibly when agents enter the obstacle.)
 

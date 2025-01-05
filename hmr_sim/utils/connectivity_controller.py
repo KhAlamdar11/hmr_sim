@@ -76,8 +76,13 @@ class ConnectivityController:
                 control_vector[0] += k * dx * 2
                 control_vector[1] += k * dy * 2
             else:
-                control_vector[0] += k * dx
-                control_vector[1] += k * dy
+                if self.params['battery_aware']:
+                    batt_gain = self.calculate_battery_gain(agent.battery)
+                    control_vector[0] += k * dx * batt_gain
+                    control_vector[1] += k * dy * batt_gain
+                else:
+                    control_vector[0] += k * dx
+                    control_vector[1] += k * dy
 
         # Scale control input
         control_vector = control_vector * self.params['gainConnectivity'] \
@@ -163,7 +168,7 @@ class ConnectivityController:
         scaled_velocities = velocities * scale_factors[:, np.newaxis]
         return scaled_velocities
 
-    def battery_gain(self, b):
+    def calculate_battery_gain(self, b):
         """
         Computes the battery gain based on the current battery level.
 

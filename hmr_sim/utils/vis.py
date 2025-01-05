@@ -221,8 +221,8 @@ class SwarmRenderer:
         self.update_markers()
         self.update_adjacency_lines()
         self.update_paths()
-        self.update_old_paths()
-        self.update_battery_circles()
+        # self.update_old_paths()
+        # self.update_battery_circles()
         if self.render_type == 'explore':
             self.update_exploration_map()
         plt.draw()

@@ -122,6 +122,24 @@ class Agent:
             # Update path history for visualization
             self.update_path_history(element)
 
+            self.state[2:] = self.speed * v * self.dt
+
+            # print(f'Speed: {np.linalg.norm(self.speed * v)}')
+
+            # Battery decay logic
+            if self.battery_decay_rate is not None and self.battery > 0:
+                a, b = self.battery_decay_rate/5, self.battery_decay_rate*200
+                c = b * np.linalg.norm(self.speed * v * self.dt)
+
+                # print('--------------------------------')
+                # print(f'fixed decay rate: {a}')
+                # print(f'var decay rate: {b}')
+                # print(f'b {round(b,3)} * speed {np.linalg.norm(self.speed * v * self.dt)}')
+                # print(f'var decay rate {c}')
+
+                # self.battery = max(0, self.battery - a - c)
+                self.battery = max(0, self.battery - self.battery_decay_rate)
+
         # Path tracker: Follow a predefined path
         elif self.controller_type == 'path_tracker' and self.path is not None:
             self.state[:2] = self.path[self.path_idx % self.path_len]
@@ -138,18 +156,23 @@ class Agent:
                     self.state[:2] = self.path[self.path_idx]
                     self.path_idx += 1
 
-            # self.prev_n_agents = deepcopy(self.n_agents)
+            self.prev_n_agents = deepcopy(self.n_agents)
 
-            # _, self.n_agents = self.compute_adjacency()
-            # self.n_agents = len(self.n_agents.keys())
+            _, self.n_agents = self.compute_adjacency()
+            self.n_agents = len(self.n_agents.keys())
 
-            # if not(self.problem):
-            #     if self.prev_n_agents is not None and self.n_agents is not None:
-            #         if self.n_agents < self.prev_n_agents - 1:
-            #             self.path = self.path[:self.path_idx]
-            #             self.path = self.path[::-1]
-            #             self.path_idx = 0
-            #             self.problem = True
+            if not(self.problem):
+                if self.prev_n_agents is not None and self.n_agents is not None:
+                    if self.n_agents < self.prev_n_agents - 1:
+                        self.path = self.path[:self.path_idx]
+                        self.path = self.path[::-1]
+                        self.path_idx = 0
+                        self.problem = True
+                        # self.old_path_len = 100
+
+            # element = deepcopy(self.state[:2])
+            # self.update_path_history(element)
+            # print(self.old_path)
 
         # Exploration: Update map and plan new paths based on frontier exploration
         elif self.controller_type == 'explore':
@@ -180,9 +203,6 @@ class Agent:
         elif self.controller_type == 'do_not_move':
             pass
 
-        # Battery decay logic
-        if self.battery_decay_rate is not None and self.battery > 0:
-            self.battery = max(0, self.battery - self.battery_decay_rate)
 
 
     def get_local_observation(self, is_free_space_fn, n_angles=360):
