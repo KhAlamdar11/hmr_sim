@@ -62,4 +62,6 @@ First navigate to the test folder: ```cd hmr_sim/tests/```
 ## References
 
 <a id="ref1"></a>
-[1]: K.G. Alamdar, “Connectivity Maintainence for ad-hoc UAV Networks for Multi-robot Missions,'' University of Zagreb, 2024, June.
+[1]: K.G. Alamdar, “Connectivity Maintainence for ad-hoc UAV Networks for Multi-robot Missions,'' Master's Thesis, University of Zagreb, 2024, June.
+
+[2]: K. G. Alamdar and T. Petrović, "Decentralized Battery-Aware Connectivity Maintenance for Multi-UAV Missions," in IEEE Access, vol. 13, pp. 83738-83751, 2025, doi: 10.1109/ACCESS.2025.3569206.
