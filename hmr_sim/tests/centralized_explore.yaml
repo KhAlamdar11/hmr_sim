@@ -5,11 +5,34 @@ map_name: mapx
 vis_radius: 5.0
 dt: 0.1
 
-# Human positions to detect
+# Human positions to detect - clustered in different areas
 human_positions:
-  - [3.0, 4.0]
-  - [-2.5, 3.0]
-  - [5.0, -2.0]
+  # Cluster 1: Top-left area
+  - [-12.0, 4.5]
+  - [-11.5, 4.2]
+  - [-12.3, 3.8]
+  # Cluster 2: Top-right area
+  - [11.0, 4.0]
+  - [11.5, 4.3]
+  - [10.8, 3.6]
+  # Cluster 3: Bottom-left area
+  - [-11.0, -4.0]
+  - [-11.5, -3.7]
+  - [-10.7, -4.3]
+  # Cluster 4: Bottom-right area
+  - [12.0, -3.5]
+  - [11.5, -3.8]
+  - [12.3, -3.2]
+  # Cluster 5: Center area
+  - [0.5, 1.0]
+  - [-0.5, 0.8]
+  - [0.2, 0.3]
+  # Cluster 6: Far left
+  - [-14.5, 1.0]
+  - [-14.8, 0.5]
+  # Cluster 7: Far right
+  - [14.5, -1.0]
+  - [14.2, -0.5]
 
 # Centralized exploration configuration
 centralized_exploration:

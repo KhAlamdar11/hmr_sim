@@ -307,12 +307,13 @@ class SwarmRenderer:
             y_undetected = [h.get_position()[1] for h in undetected]
             self.human_markers_undetected, = self.ax.plot(
                 x_undetected, y_undetected,
-                'P',  # Plus (filled) marker
-                color='gray',
-                markersize=15,
-                markeredgecolor='black',
-                markeredgewidth=1,
+                'o',  # Circle marker (smaller and cleaner)
+                color='red',
+                markersize=6,
+                markeredgecolor='darkred',
+                markeredgewidth=0.5,
                 zorder=5,
+                alpha=0.8,
                 label='Undetected Human'
             )
 
@@ -326,12 +327,13 @@ class SwarmRenderer:
             y_detected = [h.get_position()[1] for h in detected]
             self.human_markers_detected, = self.ax.plot(
                 x_detected, y_detected,
-                'P',  # Plus (filled) marker
+                'o',  # Circle marker
                 color='lime',
-                markersize=15,
+                markersize=6,
                 markeredgecolor='darkgreen',
-                markeredgewidth=1,
+                markeredgewidth=0.5,
                 zorder=5,
+                alpha=0.9,
                 label='Detected Human'
             )
 

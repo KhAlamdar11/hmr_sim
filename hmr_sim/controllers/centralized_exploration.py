@@ -171,6 +171,13 @@ class CentralizedExplorationController:
         Uses the Hungarian algorithm (linear_sum_assignment) to find the
         optimal assignment that minimizes total travel distance.
 
+        NOTE: This is most beneficial when multiple agents need assignment
+        simultaneously (e.g., at startup or when several agents complete
+        goals at similar times). For single-agent reassignment, greedy
+        nearest gives the same result. The Hungarian method ensures global
+        optimality - no two assignments could be swapped to reduce total
+        distance traveled by all agents.
+
         Args:
             agents (list): List of Agent objects needing assignment.
             frontiers (list): List of available frontier positions.
