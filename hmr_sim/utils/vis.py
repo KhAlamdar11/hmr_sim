@@ -1,10 +1,13 @@
+import math
+
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 class SwarmRenderer:
-    def __init__(self, render_type, env, swarm, occupancy_grid, origin, resolution, vis_radius=None, plot_limits=None):
+    def __init__(self, render_type, env, swarm, occupancy_grid, origin, resolution, vis_radius=None, plot_limits=None, vis_params=None):
         self.env = env
         self.render_type = render_type
         self.swarm = swarm
@@ -26,6 +29,21 @@ class SwarmRenderer:
             2: {'cmap': 'YlOrBr', 'marker': 's'}
         }
         self.plot_limits = plot_limits
+
+        # Visualization parameters
+        self.vis_params = vis_params or {}
+        self.show_fov = self.vis_params.get('show_fov', False)
+
+        # FOV visualization
+        self.fov_wedges = []
+
+        # Human visualization
+        self.human_markers_undetected = None
+        self.human_markers_detected = None
+
+        # Frontier and assignment visualization
+        self.assignment_lines = []
+        self.frontier_markers = None
 
     def initialize(self):
         plt.ion()
@@ -215,6 +233,166 @@ class SwarmRenderer:
         inverted_map = np.where(self.env.exploration_map == -1, 0.5, 1 - self.env.exploration_map)
         self.map_display.set_data(inverted_map)
 
+    def update_fov_wedges(self):
+        """
+        Update FOV wedge visualization for agents with directional FOV.
+        Wedges are shown as yellow transparent arcs.
+        """
+        # Remove existing wedges
+        for wedge in self.fov_wedges:
+            if wedge is not None:
+                wedge.remove()
+        self.fov_wedges.clear()
+
+        if not self.show_fov:
+            return
+
+        for agent in self.swarm.agents:
+            # Only show FOV for agents with the attribute
+            if not hasattr(agent, 'fov_length') or not hasattr(agent, 'fov_angle'):
+                continue
+
+            # Only show FOV for centralized_explore agents
+            if agent.controller_type != 'centralized_explore':
+                continue
+
+            x, y = agent.get_pos()
+            heading_deg = math.degrees(agent.get_heading())
+            fov_length = agent.fov_length
+            fov_angle = agent.fov_angle  # Half-angle in degrees
+
+            # Create wedge: center, radius, theta1, theta2
+            # theta1 and theta2 are measured from positive x-axis
+            theta1 = heading_deg - fov_angle
+            theta2 = heading_deg + fov_angle
+
+            wedge = mpatches.Wedge(
+                (x, y),
+                fov_length,
+                theta1,
+                theta2,
+                facecolor='yellow',
+                edgecolor='orange',
+                alpha=0.3,
+                linewidth=1,
+                zorder=2
+            )
+            self.ax.add_patch(wedge)
+            self.fov_wedges.append(wedge)
+
+    def update_human_markers(self):
+        """
+        Update human markers visualization.
+        Undetected humans are shown as gray 'P' markers.
+        Detected humans are shown as green 'P' markers.
+        """
+        if not hasattr(self.env, 'get_all_humans'):
+            return
+
+        all_humans = self.env.get_all_humans()
+        if len(all_humans) == 0:
+            return
+
+        # Separate detected and undetected humans
+        undetected = [h for h in all_humans if not h.is_detected()]
+        detected = [h for h in all_humans if h.is_detected()]
+
+        # Update undetected human markers
+        if self.human_markers_undetected is not None:
+            self.human_markers_undetected.remove()
+            self.human_markers_undetected = None
+
+        if len(undetected) > 0:
+            x_undetected = [h.get_position()[0] for h in undetected]
+            y_undetected = [h.get_position()[1] for h in undetected]
+            self.human_markers_undetected, = self.ax.plot(
+                x_undetected, y_undetected,
+                'P',  # Plus (filled) marker
+                color='gray',
+                markersize=15,
+                markeredgecolor='black',
+                markeredgewidth=1,
+                zorder=5,
+                label='Undetected Human'
+            )
+
+        # Update detected human markers
+        if self.human_markers_detected is not None:
+            self.human_markers_detected.remove()
+            self.human_markers_detected = None
+
+        if len(detected) > 0:
+            x_detected = [h.get_position()[0] for h in detected]
+            y_detected = [h.get_position()[1] for h in detected]
+            self.human_markers_detected, = self.ax.plot(
+                x_detected, y_detected,
+                'P',  # Plus (filled) marker
+                color='lime',
+                markersize=15,
+                markeredgecolor='darkgreen',
+                markeredgewidth=1,
+                zorder=5,
+                label='Detected Human'
+            )
+
+    def update_frontier_assignments(self):
+        """
+        Update frontier and assignment visualization.
+        Frontiers are shown as magenta stars.
+        Assignments are shown as cyan dashed lines from agents to their goals.
+        """
+        # Remove existing assignment lines
+        for line in self.assignment_lines:
+            if line is not None:
+                line.remove()
+        self.assignment_lines.clear()
+
+        # Remove existing frontier markers
+        if self.frontier_markers is not None:
+            self.frontier_markers.remove()
+            self.frontier_markers = None
+
+        # Get frontiers and assignments from swarm
+        frontiers = self.swarm.get_all_frontiers()
+        assignments = self.swarm.get_frontier_assignments()
+
+        # Draw frontier markers
+        if len(frontiers) > 0:
+            x_frontiers = [f[0] for f in frontiers]
+            y_frontiers = [f[1] for f in frontiers]
+            self.frontier_markers, = self.ax.plot(
+                x_frontiers, y_frontiers,
+                '*',
+                color='magenta',
+                markersize=12,
+                markeredgecolor='purple',
+                markeredgewidth=0.5,
+                zorder=4,
+                alpha=0.7,
+                label='Frontier'
+            )
+
+        # Draw assignment lines
+        for agent in self.swarm.agents:
+            if agent.controller_type != 'centralized_explore':
+                continue
+
+            agent_id = agent.get_id()
+            goal = assignments.get(agent_id)
+
+            if goal is not None:
+                agent_pos = agent.get_pos()
+                line, = self.ax.plot(
+                    [agent_pos[0], goal[0]],
+                    [agent_pos[1], goal[1]],
+                    '--',
+                    color='cyan',
+                    linewidth=1.5,
+                    alpha=0.6,
+                    zorder=3
+                )
+                self.assignment_lines.append(line)
+
     def render(self):
         if self.fig is None:
             self.initialize()
@@ -225,5 +403,9 @@ class SwarmRenderer:
         self.update_battery_circles()
         if self.render_type == 'explore':
             self.update_exploration_map()
+        # Centralized exploration visualization
+        self.update_fov_wedges()
+        self.update_human_markers()
+        self.update_frontier_assignments()
         plt.draw()
         plt.pause(0.01)

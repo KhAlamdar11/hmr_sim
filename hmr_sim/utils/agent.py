@@ -9,14 +9,15 @@ from hmr_sim.utils.connectivity_controller import ConnectivityController
 """
 Represents an individual agent in the swarm.
 
-This class models an agent with its state, behavior, and interactions in a 
-multi-agent swarm simulation. It supports various controller types and includes 
+This class models an agent with its state, behavior, and interactions in a
+multi-agent swarm simulation. It supports various controller types and includes
 functionality for obstacle avoidance, path following, and goal-directed behavior.
 
 Attributes:
     type (str): The type of the agent.
     agent_id (int): Unique identifier for the agent.
     state (np.ndarray): The state of the agent [x, y, vx, vy].
+    heading (float): The heading angle (theta) of the agent in radians.
     battery (float): Battery level of the agent.
     neighbors (list): List of neighboring agents.
 """
@@ -42,15 +43,24 @@ class Agent:
         self.is_obstacle_avoidance = config['obstacle_avoidance']
         self.speed = config['speed']
         self.sensor_radius = config['sensor_radius']
-        self.obstacle_radius = config['obs_radius']
+        self.obstacle_radius = config.get('obs_radius', 0.75)
+
+        # FOV parameters for human detection
+        self.fov_length = config.get('fov_length', 5.0)
+        self.fov_angle = config.get('fov_angle', 45)  # Half-angle in degrees
 
         # State variables
-        self.state = np.zeros(4) # [x, y, vx, vy]
+        self.state = np.zeros(4)  # [x, y, vx, vy]
         self.state[:2] = init_position
+        self.heading = 0.0  # Heading angle (theta) in radians
         self.path = None
         self.path_idx = 0
         self.path_len = 0
         self.neighbors = None
+
+        # Centralized exploration variables
+        self.centralized_goal = None
+        self.previous_centralized_goal = None
 
         # Battery variables
         self.battery = init_battery if init_battery is not None else 1.0
@@ -79,6 +89,8 @@ class Agent:
             self.set_path(path_planner.plan_path(self.state[:2]))
             print(f"Agent ID: {self.agent_id} -> Path set to {goal}")
         elif self.controller_type == 'explore':
+            self.controller = path_planner
+        elif self.controller_type == 'centralized_explore':
             self.controller = path_planner
         elif self.controller_type == 'path_tracker':
             self.set_path(path)
@@ -173,6 +185,89 @@ class Agent:
             else:
                 print("path reached")
                 self.path = None
+
+        # Centralized Exploration: Get goal from centralized controller and plan path
+        elif self.controller_type == 'centralized_explore':
+            # Update exploration map with LIDAR
+            local_obs, n_angles = self.get_local_observation(swarm.is_free_space_fn)
+            swarm.update_exploration_map_fn(self.state[:2], local_obs, n_angles, self.sensor_radius)
+
+            # Check if goal has changed and needs replanning
+            goal_changed = False
+            if self.centralized_goal is not None:
+                if self.previous_centralized_goal is None:
+                    goal_changed = True
+                elif np.linalg.norm(self.centralized_goal - self.previous_centralized_goal) > 0.1:
+                    goal_changed = True
+
+            # Plan new path if goal changed or no path exists
+            if goal_changed and self.centralized_goal is not None and self.controller is not None:
+                self.controller.set_goal(self.centralized_goal)
+                new_path = self.controller.plan_path(self.state[:2])
+                if new_path is not None and len(new_path) > 0:
+                    self.path = new_path
+                    self.path_idx = 0
+                    self.path_len = len(self.path)
+                self.previous_centralized_goal = deepcopy(self.centralized_goal)
+
+            # Follow path with lookahead for stable heading
+            if self.path is not None and self.path_idx < self.path_len:
+                # Get lookahead point for heading calculation
+                # Look ahead a few waypoints or use the final goal
+                lookahead_idx = min(self.path_idx + 3, self.path_len - 1)
+                lookahead_point = self.path[lookahead_idx]
+
+                # Calculate heading direction from current position to lookahead point
+                heading_dir = lookahead_point - self.state[:2]
+                heading_dist = np.linalg.norm(heading_dir)
+                if heading_dist > 0.01:
+                    # Update heading to face the lookahead point
+                    self.heading = math.atan2(heading_dir[1], heading_dir[0])
+
+                # Pure pursuit style path following
+                # Find target point along path that is at least speed distance away
+                target_idx = self.path_idx
+                while target_idx < self.path_len:
+                    target = self.path[target_idx]
+                    dist_to_target = np.linalg.norm(target - self.state[:2])
+
+                    # Use threshold slightly larger than speed to avoid overshoot jitter
+                    waypoint_threshold = self.speed * 1.2
+
+                    if dist_to_target <= waypoint_threshold:
+                        # Close to or past this waypoint, advance
+                        target_idx += 1
+                    else:
+                        # This is our target
+                        break
+
+                # Update path index to skip waypoints we've passed
+                self.path_idx = target_idx
+
+                if self.path_idx < self.path_len:
+                    # Move toward target waypoint
+                    target = self.path[self.path_idx]
+                    displacement = target - self.state[:2]
+                    dist_to_target = np.linalg.norm(displacement)
+
+                    if dist_to_target > 0.01:
+                        move_dir = displacement / dist_to_target
+                        # Don't overshoot the target
+                        move_dist = min(self.speed, dist_to_target)
+                        self.state[:2] += move_dir * move_dist
+                        # Store velocity
+                        self.state[2] = move_dir[0] * move_dist
+                        self.state[3] = move_dir[1] * move_dist
+
+            if self.path is not None and self.path_idx >= self.path_len:
+                # Path completed
+                self.path = None
+                self.state[2] = 0
+                self.state[3] = 0
+
+            # Update path history for visualization
+            element = deepcopy(self.state[:2])
+            self.update_path_history(element)
 
         elif self.controller_type == 'dummy':
             self.state[0] += 1 * self.speed
@@ -379,6 +474,102 @@ class Agent:
 
     def get_data(self):
         return {"id": self.agent_id, "position": self.state[:2]}
+
+    def normalize_angle(self, angle):
+        """
+        Normalize an angle to the range [-pi, pi].
+
+        Args:
+            angle (float): Angle in radians.
+
+        Returns:
+            float: Normalized angle in radians.
+        """
+        while angle > math.pi:
+            angle -= 2 * math.pi
+        while angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
+
+    def update_heading(self):
+        """
+        Update heading based on velocity direction.
+        Only updates if the agent is moving (velocity magnitude > threshold).
+        """
+        vx, vy = self.state[2], self.state[3]
+        velocity_magnitude = math.sqrt(vx**2 + vy**2)
+
+        if velocity_magnitude > 0.01:  # Only update if moving
+            self.heading = self.normalize_angle(math.atan2(vy, vx))
+
+    def get_heading(self):
+        """
+        Returns the current heading of the agent.
+
+        Returns:
+            float: Heading angle in radians.
+        """
+        return self.heading
+
+    def is_point_in_fov(self, point, los_fn=None):
+        """
+        Check if a point is within the agent's directional field of view.
+
+        Args:
+            point (np.ndarray or list): The [x, y] position to check.
+            los_fn (callable, optional): Line-of-sight check function.
+                                         If provided, checks if path to point is clear.
+
+        Returns:
+            bool: True if the point is in the FOV and visible.
+        """
+        point = np.array(point)
+        agent_pos = self.state[:2]
+
+        # Calculate distance to point
+        distance = np.linalg.norm(point - agent_pos)
+
+        # Check if within FOV range
+        if distance > self.fov_length:
+            return False
+
+        # Calculate angle to point
+        dx = point[0] - agent_pos[0]
+        dy = point[1] - agent_pos[1]
+        angle_to_point = math.atan2(dy, dx)
+
+        # Calculate angular difference from heading
+        angle_diff = self.normalize_angle(angle_to_point - self.heading)
+
+        # Check if within FOV angle (fov_angle is half-angle in degrees)
+        fov_half_angle_rad = math.radians(self.fov_angle)
+        if abs(angle_diff) > fov_half_angle_rad:
+            return False
+
+        # Check line of sight if function provided
+        if los_fn is not None:
+            if not los_fn(agent_pos, point):
+                return False
+
+        return True
+
+    def set_centralized_goal(self, goal):
+        """
+        Set the goal from the centralized exploration controller.
+
+        Args:
+            goal (np.ndarray or None): The goal position [x, y] or None.
+        """
+        self.centralized_goal = goal
+
+    def get_centralized_goal(self):
+        """
+        Get the current centralized goal.
+
+        Returns:
+            np.ndarray or None: The goal position or None.
+        """
+        return self.centralized_goal
 
     # def update_state(self, swarm, action, is_free_space_fn):
     #     velocity = action * self.speed

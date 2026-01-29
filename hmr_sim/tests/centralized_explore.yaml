@@ -1,0 +1,64 @@
+# Centralized Multi-Agent Exploration with Human Detection
+# Environment Configuration
+env: Hetro-v0
+map_name: mapx
+vis_radius: 5.0
+dt: 0.1
+
+# Human positions to detect
+human_positions:
+  - [3.0, 4.0]
+  - [-2.5, 3.0]
+  - [5.0, -2.0]
+
+# Centralized exploration configuration
+centralized_exploration:
+  enabled: true
+  assignment_strategy: greedy_nearest  # Options: 'greedy_nearest' or 'hungarian'
+
+# Agent configuration - UAVs only for centralized exploration
+agent_config:
+  1:
+    num_agents: 2
+    controller_type: centralized_explore
+    obstacle_avoidance: 1
+    init_position: None
+    init_formation:
+      shape: Circle
+      origin: [0.0, 0.0]
+      radius: 1.0
+    speed: 0.15
+    sensor_radius: 7.0      # LIDAR range for map building
+    obs_radius: 0.75        # Obstacle avoidance radius
+    fov_length: 5.0         # Camera/detection range for humans
+    fov_angle: 45           # FOV half-angle in degrees
+
+# Add agent parameters (required by swarm, even if not used)
+add_agent_params:
+  mode: add_agent_base
+  criterion: min_n_agents
+  critical_value: 2
+  battery_of_concern: 0.1
+  agent_type_to_add: 1
+  agent_addition_id: 0
+
+# Visualization parameters
+vis_params:
+  render_type: explore
+  show_old_path: 50
+  plot_limits: None
+  show_fov: true           # Enable FOV cone visualization
+
+# Controller parameters (for connectivity controller, not used in centralized_explore)
+controller_params:
+  delta: 0.2
+  repelThreshold: 0.6
+  battery_aware: 0
+  normalized: 0
+  epsilon: 0.01
+  gainConnectivity: 1.0
+  gainRepel: 0.08
+  unweighted: 1
+  v_max: 0.3
+  critical_battery_level: 0.14
+  tau: 0.01

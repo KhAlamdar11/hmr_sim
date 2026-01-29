@@ -38,7 +38,8 @@ class HetroV0(BaseEnv):
                                          origin=self.origin, resolution=self.resolution,
                                          vis_radius=self.vis_radius,
                                          plot_limits=config.get('vis_params')['plot_limits'] if
-                                         config.get('vis_params')['plot_limits'] != 'None' else None)
+                                         config.get('vis_params')['plot_limits'] != 'None' else None,
+                                         vis_params=config.get('vis_params', {}))
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.total_agents, 4), dtype=np.float64)

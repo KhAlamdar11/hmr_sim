@@ -9,6 +9,7 @@ from hmr_sim.utils.agent import Agent
 from hmr_sim.utils.lattice_generation import gen_lattice
 from hmr_sim.utils.rrt import RRT
 from hmr_sim.utils.utils import get_curve
+from hmr_sim.controllers.centralized_exploration import CentralizedExplorationController
 
 """
 The Swarm class manages a collection of heterogeneous agents in a multi-agent system.
@@ -74,6 +75,8 @@ class Swarm:
 
                 if self.agent_config[agent_type]['controller_type'] == 'explore':
                     path_planner = RRT(env)
+                elif self.agent_config[agent_type]['controller_type'] == 'centralized_explore':
+                    path_planner = RRT(env)
                 elif self.agent_config[agent_type]['controller_type'] == 'go_to_goal':
                     path_planner = RRT(env)
                     goals = self.agent_config[agent_type]['goals']
@@ -115,6 +118,19 @@ class Swarm:
         self.fiedler_list = []
         self.n_agents_list = []
 
+        # ________________________  Centralized Exploration  ________________________
+        self.centralized_exploration_config = config.get('centralized_exploration', {})
+        self.centralized_controller = None
+        if self.centralized_exploration_config.get('enabled', False):
+            assignment_strategy = self.centralized_exploration_config.get(
+                'assignment_strategy', 'greedy_nearest'
+            )
+            self.centralized_controller = CentralizedExplorationController(
+                frontier_detector=env.frontier_detector,
+                assignment_strategy=assignment_strategy
+            )
+            print(f"Centralized exploration enabled with {assignment_strategy} strategy")
+
     def compute_adjacency_matrix(self):
         positions = np.array([agent.state[:2] for agent in self.agents])
         edge_osbtacle = np.array([agent.is_obstacle_avoidance for agent in self.agents])
@@ -144,6 +160,31 @@ class Swarm:
         self.update_neighbors()
         # self.save_fiedler_value()
 
+        # ________________________  Centralized Exploration Update  ________________________
+        if self.centralized_controller is not None:
+            # Get agents using centralized_explore controller
+            centralized_agents = [
+                agent for agent in self.agents
+                if agent.controller_type == 'centralized_explore'
+            ]
+
+            # Update centralized controller and get assignments
+            assignments = self.centralized_controller.update(
+                self.env.exploration_map,
+                centralized_agents
+            )
+
+            # Distribute goals to agents
+            for agent in centralized_agents:
+                agent_id = agent.get_id()
+                goal = assignments.get(agent_id)
+                agent.set_centralized_goal(goal)
+
+        # ________________________  Human Detection Check  ________________________
+        if hasattr(self.env, 'check_human_detections'):
+            self.env.check_human_detections(self.agents)
+            self.env.increment_simulation_step()
+
         to_remove = []
         to_add = []
 
@@ -153,7 +194,7 @@ class Swarm:
             if all_active or agent.type == 'UAV':
                 agent.run_controller(self)
 
-        for agent in self.agents:  # Create a shallow copy for iteration            
+        for agent in self.agents:  # Create a shallow copy for iteration
             # Check battery is below first thresold and then add a new agent
             if agent.battery < self.add_agent_params['battery_of_concern'] and \
                     agent not in self.add_agent_already_added:
@@ -231,6 +272,28 @@ class Swarm:
 
     def get_poses(self):
         return np.array([agent.state[:2] for agent in self.agents])
+
+    def get_frontier_assignments(self):
+        """
+        Get current frontier assignments for visualization.
+
+        Returns:
+            dict: Mapping of agent_id -> goal position, or empty dict if no centralized controller.
+        """
+        if self.centralized_controller is not None:
+            return self.centralized_controller.get_all_assignments()
+        return {}
+
+    def get_all_frontiers(self):
+        """
+        Get all detected frontiers for visualization.
+
+        Returns:
+            list: List of frontier positions, or empty list if no centralized controller.
+        """
+        if self.centralized_controller is not None:
+            return self.centralized_controller.get_all_frontiers()
+        return []
 
     def step(self, actions, is_free_space_fn):
         pass

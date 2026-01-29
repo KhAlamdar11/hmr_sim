@@ -7,6 +7,7 @@ import numpy as np
 import yaml
 
 from hmr_sim.controllers.frontier_explore import FrontierDetector
+from hmr_sim.utils.human import Human
 
 
 class BaseEnv(Env):
@@ -28,6 +29,11 @@ class BaseEnv(Env):
         # swarm variables
         self.swarm = None
 
+        # Human detection variables
+        self.humans = []
+        self.detected_humans = []
+        self.simulation_step = 0
+
         # map setup
         self.map_name = config.get('map_name')
         PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +46,11 @@ class BaseEnv(Env):
         self.exploration_map = np.full_like(self.occupancy_grid, -1)
         self.frontier_detector = FrontierDetector(self.exploration_map, self.resolution,
                                                   [self.origin['x'], self.origin['y']], robot_size=0.5)
+
+        # Initialize humans from config
+        human_positions = config.get('human_positions', [])
+        for i, pos in enumerate(human_positions):
+            self.humans.append(Human(human_id=i, position=pos))
 
     def load_yaml_config(self, yaml_path):
         with open(yaml_path, 'r') as file:
@@ -218,3 +229,66 @@ class BaseEnv(Env):
             goal = None
 
         return goal
+
+    def check_human_detections(self, agents):
+        """
+        Check if any humans are within the FOV of any agent.
+
+        Args:
+            agents (list): List of Agent objects to check.
+
+        Returns:
+            list: List of newly detected Human objects this step.
+        """
+        newly_detected = []
+
+        for human in self.humans:
+            if human.is_detected():
+                continue
+
+            for agent in agents:
+                # Only check agents with FOV capability
+                if not hasattr(agent, 'is_point_in_fov'):
+                    continue
+
+                human_pos = human.get_position()
+
+                # Check if human is in agent's FOV with line-of-sight check
+                if agent.is_point_in_fov(human_pos, self.is_line_of_sight_free):
+                    human.mark_detected(agent.get_id(), self.simulation_step * self.dt)
+                    self.detected_humans.append(human)
+                    newly_detected.append(human)
+                    break  # Human can only be detected once
+
+        return newly_detected
+
+    def get_detected_humans(self):
+        """
+        Get list of all detected humans.
+
+        Returns:
+            list: List of detected Human objects.
+        """
+        return self.detected_humans
+
+    def get_all_humans(self):
+        """
+        Get list of all humans (detected and undetected).
+
+        Returns:
+            list: List of all Human objects.
+        """
+        return self.humans
+
+    def get_undetected_humans(self):
+        """
+        Get list of undetected humans.
+
+        Returns:
+            list: List of undetected Human objects.
+        """
+        return [h for h in self.humans if not h.is_detected()]
+
+    def increment_simulation_step(self):
+        """Increment the simulation step counter."""
+        self.simulation_step += 1
