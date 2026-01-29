@@ -32,7 +32,7 @@ def run(args):
     # create a battery tracker to keep battery states
     battery_tracker = BatteryTracker()
 
-    env.render()
+    # env.render()
 
     while not done:
         # action = env.unwrapped.get_dummy_action() #+ [0.5, 0.0]
@@ -49,6 +49,7 @@ def run(args):
         #     pass
         # Render the environment
 
+        # if t>368:
         env.render()
 
         # print(t)
@@ -58,10 +59,12 @@ def run(args):
         #     print(f"Step {t}: Reward: {reward}, Done: {done}")
 
         t += 1
+
+        print(t)
         # print(t)
-        # if t>6000:
-        #     battery_tracker.save_to_file("battery_data.csv")
-        #     break
+        if t>600:
+            battery_tracker.save_to_file("battery_data.csv")
+            break
 
 
     print("Simulation ended.")

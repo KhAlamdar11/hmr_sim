@@ -85,7 +85,7 @@ class Swarm:
                 # Battery handling
                 init_battery = self.agent_config.get(agent_type).get('init_battery', None)
                 if init_battery == 'autofill':
-                    init_battery = np.linspace(0.16, 0.9, self.agent_config[agent_type]['num_agents'])
+                    init_battery = np.linspace(0.2, 0.9, self.agent_config[agent_type]['num_agents'])
                 battery_decay_rate = self.agent_config.get(agent_type).get('battery_decay_rate', None)
                 battery_threshold = self.agent_config.get(agent_type).get('battery_threshold', None)
 
@@ -116,6 +116,7 @@ class Swarm:
         self.n_agents_list = []
         self.vels = []
         self.vel_std = []
+        self.positions_data = []
 
     def compute_adjacency_matrix(self):
         positions = np.array([agent.state[:2] for agent in self.agents])
@@ -173,11 +174,16 @@ class Swarm:
             self.add_agent_already_added.remove(agent)
             self.remove_agent(agent)  # Call the method to remove the agent
 
+        if self.add_agent_params['criterion'] == 'min_fiedler':
+            self.add_agent_fiedler()
+
+
     def all_active(self):
         for agent in self.agents:
             if agent.mode != 'active':
                 return False
         return True
+
 
     def remove_agent(self, agent):
         self.agents.remove(agent)
@@ -205,6 +211,17 @@ class Swarm:
                 print(f"Number of agents is {self.total_agents}, which is <= {self.add_agent_params['critical_value']}")
                 self.add_agent()
                 self.total_agents += 1
+
+    def add_agent_fiedler(self):
+        fiedler = self.compute_fiedler_value()
+        if fiedler < self.add_agent_params['critical_value']:
+            print(f"Fiedler value is {fiedler}, which is <= {self.add_agent_params['critical_value']}")
+            min_battery_agent = min(self.agents, key=lambda agent: agent.battery)
+            self.add_agent.set_neighbors(min_battery_agent.neighbors)
+            self.add_agent()
+            self.total_agents += 1
+
+
 
     def get_dummy_action(self):
         num_agents = len(self.agents)
@@ -269,7 +286,12 @@ class Swarm:
         # Save the two lists as .npy files
         np.save("fiedler_list.npy", np.array(self.fiedler_list))
         np.save("n_agents_list.npy", np.array(self.n_agents_list))
-        # np.save(f"/As/A_{int(self.total_agents)}.npy", A)
+        # np.save(f"/home/anton-superior/hmr_sim/hmr_sim/tests/positions_topo/positions_{int(self.total_agents)}.npy", self.get_poses())
+
+        self.positions_data.append(self.get_poses())
+        # print(self.positions_data)
+        np.save("/home/anton-superior/hmr_sim/hmr_sim/tests/redundancy/positions.py", np.array(self.positions_data, dtype=object))
+
 
     def get_velocity_data(self):
         # Compute velocities

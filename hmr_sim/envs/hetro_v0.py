@@ -53,6 +53,7 @@ class HetroV0(BaseEnv):
         # print(f'Fiedler value {self.swarm.compute_fiedler_value()}')
         # if self.swarm.total_agents == 12:
         self.render_func.render()
+        # pass
         #         self.old_total_agents = self.swarm.total_agents
         # elif self.start:
         #     self.render_func.render()

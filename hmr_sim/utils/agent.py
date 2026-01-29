@@ -128,7 +128,7 @@ class Agent:
 
             # Battery decay logic
             if self.battery_decay_rate is not None and self.battery > 0:
-                a, b = self.battery_decay_rate/5, self.battery_decay_rate*200
+                a, b = self.battery_decay_rate/5, self.battery_decay_rate*2000
                 c = b * np.linalg.norm(self.speed * v * self.dt)
 
                 # print('--------------------------------')

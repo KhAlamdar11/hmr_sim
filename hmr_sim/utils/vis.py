@@ -152,17 +152,17 @@ class SwarmRenderer:
                     self.old_paths[i].set_data(old_path_x, old_path_y)
                 else:
                     old_path_line, = self.ax.plot(
-                        old_path_x, old_path_y, color='blue', linestyle='--', linewidth=3.0, alpha=0.4, zorder=1
+                        old_path_x, old_path_y, color='blue', linestyle='--', linewidth=3.0, alpha=0.7, zorder=1
                     )
                     self.old_paths[i] = old_path_line
 
-                if len(agent.old_path) % 6 == 0:
+                if len(agent.old_path) % 4 == 0:
                     dx = old_path_x[-1] - old_path_x[-2]
                     dy = old_path_y[-1] - old_path_y[-2]
 
                     self.ax.quiver(
                         old_path_x[-2], old_path_y[-2], dx, dy,
-                        angles='xy', scale_units='xy', scale=0.6, color='blue', alpha=0.05, zorder=2
+                        angles='xy', scale_units='xy', scale=0.6, color='blue', alpha=0.2, zorder=2
                     )
 
     def update_battery_circles(self):
@@ -180,7 +180,7 @@ class SwarmRenderer:
         for i, agent in enumerate(self.swarm.agents):
             if agent.battery < self.swarm.add_agent_params['battery_of_concern']:
                 color = 'red'
-            elif agent.battery is not None and agent.battery > 0.85:
+            elif agent.battery is not None and agent.battery > 0.95:
                 color = 'green'
             else:
                 color = None
@@ -221,8 +221,8 @@ class SwarmRenderer:
         self.update_markers()
         self.update_adjacency_lines()
         self.update_paths()
-        # self.update_old_paths()
-        # self.update_battery_circles()
+        self.update_old_paths()
+        self.update_battery_circles()
         if self.render_type == 'explore':
             self.update_exploration_map()
         plt.draw()
